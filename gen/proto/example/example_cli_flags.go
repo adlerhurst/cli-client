@@ -11,182 +11,217 @@ type CallRequestFlag struct {
 	*CallRequest
 
 	changed bool
+	set     *pflag.FlagSet
+
+	useFieldNameFlag  *StringParser
+	useCustomNameFlag *StringParser
+	nestedFlag        *CallRequest_NestedFlag
+	repNestFlag       []*CallRequest_NestedFlag
+	createdAtFlag     *TimestampParser
+	payloadFlag       *StructParser
+	watFlag           *EnumParser[CallRequest_Wat]
+	isSomethingFlag   *BoolParser
+	i32Flag           *Int32Parser
+	ui32Flag          *Uint32Parser
+	i64Flag           *Int64Parser
+	ui64Flag          *Uint64Parser
+	flFlag            *FloatParser
+	dblFlag           *DoubleParser
+	beizFlag          *BytesParser
+	si32Flag          *Sint32Parser
+	si64Flag          *Sint64Parser
+	f32Flag           *Fixed32Parser
+	f64Flag           *Fixed64Parser
+	sf32Flag          *Sfixed32Parser
+	sf64Flag          *Sfixed64Parser
+	someFlag          *EnumParser[Some]
+	repSFlag          *DoubleSliceParser
+	repWatFlag        *EnumSliceParser[CallRequest_Wat]
+	somethingFlag     *AnyParser
+	ooTextFlag        *StringParser
+	ooWatFlag         *EnumParser[CallRequest_Wat]
+	ooNestedFlag      *CallRequest_NestedFlag
+}
+
+func (x *CallRequestFlag) AddFlags(parent *pflag.FlagSet) {
+	x.set = pflag.NewFlagSet("CallRequest", pflag.ContinueOnError)
+	parent.AddFlagSet(x.set)
+
+	x.useFieldNameFlag = NewStringFlag(x.set, "useFieldName", "")
+	x.useCustomNameFlag = NewStringFlag(x.set, "useCustomName", "")
+	x.nestedFlag = &CallRequest_NestedFlag{CallRequest_Nested: new(CallRequest_Nested)}
+	x.nestedFlag.AddFlags(x.set)
+	x.repNestFlag = []*CallRequest_NestedFlag{}
+	x.createdAtFlag = NewTimestampFlag(x.set, "createdAt", "")
+	x.payloadFlag = NewStructFlag(x.set, "payload", "")
+	x.watFlag = NewEnumFlag[CallRequest_Wat](x.set, "wat", "")
+	x.isSomethingFlag = NewBoolFlag(x.set, "isSomething", "")
+	x.i32Flag = NewInt32Flag(x.set, "i32", "")
+	x.ui32Flag = NewUint32Flag(x.set, "ui32", "")
+	x.i64Flag = NewInt64Flag(x.set, "i64", "")
+	x.ui64Flag = NewUint64Flag(x.set, "ui64", "")
+	x.flFlag = NewFloatFlag(x.set, "fl", "")
+	x.dblFlag = NewDoubleFlag(x.set, "dbl", "")
+	x.beizFlag = NewBytesFlag(x.set, "beiz", "")
+	x.si32Flag = NewSint32Flag(x.set, "si32", "")
+	x.si64Flag = NewSint64Flag(x.set, "si64", "")
+	x.f32Flag = NewFixed32Flag(x.set, "f32", "")
+	x.f64Flag = NewFixed64Flag(x.set, "f64", "")
+	x.sf32Flag = NewSfixed32Flag(x.set, "sf32", "")
+	x.sf64Flag = NewSfixed64Flag(x.set, "sf64", "")
+	x.someFlag = NewEnumFlag[Some](x.set, "some", "")
+	x.repSFlag = NewDoubleSliceFlag(x.set, "repS", "")
+	x.repWatFlag = NewEnumSliceFlag[CallRequest_Wat](x.set, "repWat", "")
+	x.somethingFlag = NewAnyFlag(x.set, "something", "")
+	x.ooTextFlag = NewStringFlag(x.set, "ooText", "")
+	x.ooWatFlag = NewEnumFlag[CallRequest_Wat](x.set, "ooWat", "")
+	x.ooNestedFlag = &CallRequest_NestedFlag{CallRequest_Nested: new(CallRequest_Nested)}
+	x.ooNestedFlag.AddFlags(x.set)
 }
 
 func (x *CallRequestFlag) ParseFlags(parent *pflag.FlagSet, args []string) {
-	set := pflag.NewFlagSet("CallRequest", pflag.ContinueOnError)
-	parent.AddFlagSet(set)
 	flagIndexes := fieldIndexes(args, "nested", "repNest", "ooNested")
 
-	useFieldNameFlag := NewStringFlag(set, "useFieldName", "")
-	useCustomNameFlag := NewStringFlag(set, "useCustomName", "")
-	nestedFlag := &CallRequest_NestedFlag{CallRequest_Nested: new(CallRequest_Nested)}
-	repNestFlag := make([]*CallRequest_NestedFlag, len(flagIndexes.byName("repNest")))
-	createdAtFlag := NewTimestampFlag(set, "createdAt", "")
-	payloadFlag := NewStructFlag(set, "payload", "")
-	watFlag := NewEnumFlag[CallRequest_Wat](set, "wat", "")
-	isSomethingFlag := NewBoolFlag(set, "isSomething", "")
-	i32Flag := NewInt32Flag(set, "i32", "")
-	ui32Flag := NewUint32Flag(set, "ui32", "")
-	i64Flag := NewInt64Flag(set, "i64", "")
-	ui64Flag := NewUint64Flag(set, "ui64", "")
-	flFlag := NewFloatFlag(set, "fl", "")
-	dblFlag := NewDoubleFlag(set, "dbl", "")
-	beizFlag := NewBytesFlag(set, "beiz", "")
-	si32Flag := NewSint32Flag(set, "si32", "")
-	si64Flag := NewSint64Flag(set, "si64", "")
-	f32Flag := NewFixed32Flag(set, "f32", "")
-	f64Flag := NewFixed64Flag(set, "f64", "")
-	sf32Flag := NewSfixed32Flag(set, "sf32", "")
-	sf64Flag := NewSfixed64Flag(set, "sf64", "")
-	someFlag := NewEnumFlag[Some](set, "some", "")
-	repSFlag := NewDoubleSliceFlag(set, "repS", "")
-	repWatFlag := NewEnumSliceFlag[CallRequest_Wat](set, "repWat", "")
-	somethingFlag := NewAnyFlag(set, "something", "")
-	ooTextFlag := NewStringFlag(set, "ooText", "")
-	ooWatFlag := NewEnumFlag[CallRequest_Wat](set, "ooWat", "")
-	ooNestedFlag := &CallRequest_NestedFlag{CallRequest_Nested: new(CallRequest_Nested)}
-
-	if err := set.Parse(flagIndexes.primitives().args); err != nil {
+	if err := x.set.Parse(flagIndexes.primitives().args); err != nil {
 		DefaultConfig.Logger.Error("failed to parse flags", "cause", err)
 		os.Exit(1)
 	}
 
 	if flagIdx := flagIndexes.lastByName("nested"); flagIdx != nil {
-		nestedFlag.ParseFlags(set, flagIdx.args)
+		x.nestedFlag.ParseFlags(x.set, flagIdx.args)
 	}
 
 	if flagIdx := flagIndexes.lastByName("ooNested"); flagIdx != nil {
-		ooNestedFlag.ParseFlags(set, flagIdx.args)
+		x.ooNestedFlag.ParseFlags(x.set, flagIdx.args)
 	}
 
 	for i, flagIdx := range flagIndexes.byName("repNest") {
-		repNestFlag[i] = new(CallRequest_NestedFlag)
-		repNestFlag[i].ParseFlags(set, flagIdx.args)
+		x.repNestFlag[i] = new(CallRequest_NestedFlag)
+		x.repNestFlag[i].ParseFlags(x.set, flagIdx.args)
 	}
 
-	if useFieldNameFlag.Changed() {
+	if x.useFieldNameFlag.Changed() {
 		x.changed = true
-		x.UseFieldName = *useFieldNameFlag.Value
+		x.UseFieldName = *x.useFieldNameFlag.Value
 	}
-	if useCustomNameFlag.Changed() {
+	if x.useCustomNameFlag.Changed() {
 		x.changed = true
-		x.UseCustomName = *useCustomNameFlag.Value
-	}
-
-	if nestedFlag.Changed() {
-		x.changed = true
-		x.Nested = nestedFlag.CallRequest_Nested
+		x.UseCustomName = *x.useCustomNameFlag.Value
 	}
 
-	if len(repNestFlag) > 0 {
+	if x.nestedFlag.Changed() {
 		x.changed = true
-		x.RepNest = make([]*CallRequest_Nested, len(repNestFlag))
-		for i, value := range repNestFlag {
+		x.Nested = x.nestedFlag.CallRequest_Nested
+	}
+
+	if len(x.repNestFlag) > 0 {
+		x.changed = true
+		x.RepNest = make([]*CallRequest_Nested, len(x.repNestFlag))
+		for i, value := range x.repNestFlag {
 			x.RepNest[i] = value.CallRequest_Nested
 		}
 	}
 
-	if createdAtFlag.Changed() {
+	if x.createdAtFlag.Changed() {
 		x.changed = true
-		x.CreatedAt = createdAtFlag.Value
+		x.CreatedAt = x.createdAtFlag.Value
 	}
-	if payloadFlag.Changed() {
+	if x.payloadFlag.Changed() {
 		x.changed = true
-		x.Payload = payloadFlag.Value
+		x.Payload = x.payloadFlag.Value
 	}
-	if watFlag.Changed() {
+	if x.watFlag.Changed() {
 		x.changed = true
-		x.Wat = *watFlag.Value
+		x.Wat = *x.watFlag.Value
 	}
-	if isSomethingFlag.Changed() {
+	if x.isSomethingFlag.Changed() {
 		x.changed = true
-		x.IsSomething = *isSomethingFlag.Value
+		x.IsSomething = *x.isSomethingFlag.Value
 	}
-	if i32Flag.Changed() {
+	if x.i32Flag.Changed() {
 		x.changed = true
-		x.I32 = i32Flag.Value
+		x.I32 = x.i32Flag.Value
 	}
-	if ui32Flag.Changed() {
+	if x.ui32Flag.Changed() {
 		x.changed = true
-		x.Ui32 = *ui32Flag.Value
+		x.Ui32 = *x.ui32Flag.Value
 	}
-	if i64Flag.Changed() {
+	if x.i64Flag.Changed() {
 		x.changed = true
-		x.I64 = *i64Flag.Value
+		x.I64 = *x.i64Flag.Value
 	}
-	if ui64Flag.Changed() {
+	if x.ui64Flag.Changed() {
 		x.changed = true
-		x.Ui64 = *ui64Flag.Value
+		x.Ui64 = *x.ui64Flag.Value
 	}
-	if flFlag.Changed() {
+	if x.flFlag.Changed() {
 		x.changed = true
-		x.Fl = *flFlag.Value
+		x.Fl = *x.flFlag.Value
 	}
-	if dblFlag.Changed() {
+	if x.dblFlag.Changed() {
 		x.changed = true
-		x.Dbl = *dblFlag.Value
+		x.Dbl = *x.dblFlag.Value
 	}
-	if beizFlag.Changed() {
+	if x.beizFlag.Changed() {
 		x.changed = true
-		x.Beiz = *beizFlag.Value
+		x.Beiz = *x.beizFlag.Value
 	}
-	if si32Flag.Changed() {
+	if x.si32Flag.Changed() {
 		x.changed = true
-		x.Si32 = *si32Flag.Value
+		x.Si32 = *x.si32Flag.Value
 	}
-	if si64Flag.Changed() {
+	if x.si64Flag.Changed() {
 		x.changed = true
-		x.Si64 = *si64Flag.Value
+		x.Si64 = *x.si64Flag.Value
 	}
-	if f32Flag.Changed() {
+	if x.f32Flag.Changed() {
 		x.changed = true
-		x.F32 = *f32Flag.Value
+		x.F32 = *x.f32Flag.Value
 	}
-	if f64Flag.Changed() {
+	if x.f64Flag.Changed() {
 		x.changed = true
-		x.F64 = *f64Flag.Value
+		x.F64 = *x.f64Flag.Value
 	}
-	if sf32Flag.Changed() {
+	if x.sf32Flag.Changed() {
 		x.changed = true
-		x.Sf32 = *sf32Flag.Value
+		x.Sf32 = *x.sf32Flag.Value
 	}
-	if sf64Flag.Changed() {
+	if x.sf64Flag.Changed() {
 		x.changed = true
-		x.Sf64 = *sf64Flag.Value
+		x.Sf64 = *x.sf64Flag.Value
 	}
-	if someFlag.Changed() {
+	if x.someFlag.Changed() {
 		x.changed = true
-		x.Some = *someFlag.Value
+		x.Some = *x.someFlag.Value
 	}
-	if repSFlag.Changed() {
+	if x.repSFlag.Changed() {
 		x.changed = true
-		x.RepS = *repSFlag.Value
+		x.RepS = *x.repSFlag.Value
 	}
-	if repWatFlag.Changed() {
+	if x.repWatFlag.Changed() {
 		x.changed = true
-		x.RepWat = *repWatFlag.Value
+		x.RepWat = *x.repWatFlag.Value
 	}
-	if somethingFlag.Changed() {
+	if x.somethingFlag.Changed() {
 		x.changed = true
-		x.Something = somethingFlag.Value
+		x.Something = x.somethingFlag.Value
 	}
 
 	switch fieldIndexes(args, "ooText", "ooWat", "ooNested").last().flag {
 	case "ooText":
-		if ooTextFlag.Changed() {
+		if x.ooTextFlag.Changed() {
 			x.changed = true
-			x.Oo = &CallRequest_OoText{OoText: *ooTextFlag.Value}
+			x.Oo = &CallRequest_OoText{OoText: *x.ooTextFlag.Value}
 		}
 	case "ooWat":
-		if ooWatFlag.Changed() {
+		if x.ooWatFlag.Changed() {
 			x.changed = true
-			x.Oo = &CallRequest_OoWat{OoWat: *ooWatFlag.Value}
+			x.Oo = &CallRequest_OoWat{OoWat: *x.ooWatFlag.Value}
 		}
 	case "ooNested":
-		if ooNestedFlag.Changed() {
+		if x.ooNestedFlag.Changed() {
 			x.changed = true
-			x.Oo = &CallRequest_OoNested{OoNested: ooNestedFlag.CallRequest_Nested}
+			x.Oo = &CallRequest_OoNested{OoNested: x.ooNestedFlag.CallRequest_Nested}
 		}
 	}
 }
@@ -199,23 +234,29 @@ type CallRequest_NestedFlag struct {
 	*CallRequest_Nested
 
 	changed bool
+	set     *pflag.FlagSet
+
+	fieldFlag *StringParser
+}
+
+func (x *CallRequest_NestedFlag) AddFlags(parent *pflag.FlagSet) {
+	x.set = pflag.NewFlagSet("CallRequest_Nested", pflag.ContinueOnError)
+	parent.AddFlagSet(x.set)
+
+	x.fieldFlag = NewStringFlag(x.set, "field", "")
 }
 
 func (x *CallRequest_NestedFlag) ParseFlags(parent *pflag.FlagSet, args []string) {
-	set := pflag.NewFlagSet("CallRequest_Nested", pflag.ContinueOnError)
-	parent.AddFlagSet(set)
 	flagIndexes := fieldIndexes(args)
 
-	fieldFlag := NewStringFlag(set, "field", "")
-
-	if err := set.Parse(flagIndexes.primitives().args); err != nil {
+	if err := x.set.Parse(flagIndexes.primitives().args); err != nil {
 		DefaultConfig.Logger.Error("failed to parse flags", "cause", err)
 		os.Exit(1)
 	}
 
-	if fieldFlag.Changed() {
+	if x.fieldFlag.Changed() {
 		x.changed = true
-		x.Field = *fieldFlag.Value
+		x.Field = *x.fieldFlag.Value
 	}
 }
 
@@ -227,33 +268,41 @@ type NestedRequestFlag struct {
 	*NestedRequest
 
 	changed bool
+	set     *pflag.FlagSet
+
+	nestedFlag *NestedRequest_NestedFlag
+	idFlag     *StringParser
+}
+
+func (x *NestedRequestFlag) AddFlags(parent *pflag.FlagSet) {
+	x.set = pflag.NewFlagSet("NestedRequest", pflag.ContinueOnError)
+	parent.AddFlagSet(x.set)
+
+	x.nestedFlag = &NestedRequest_NestedFlag{NestedRequest_Nested: new(NestedRequest_Nested)}
+	x.nestedFlag.AddFlags(x.set)
+	x.idFlag = NewStringFlag(x.set, "id", "")
 }
 
 func (x *NestedRequestFlag) ParseFlags(parent *pflag.FlagSet, args []string) {
-	set := pflag.NewFlagSet("NestedRequest", pflag.ContinueOnError)
-	parent.AddFlagSet(set)
 	flagIndexes := fieldIndexes(args, "nested")
 
-	nestedFlag := &NestedRequest_NestedFlag{NestedRequest_Nested: new(NestedRequest_Nested)}
-	idFlag := NewStringFlag(set, "id", "")
-
-	if err := set.Parse(flagIndexes.primitives().args); err != nil {
+	if err := x.set.Parse(flagIndexes.primitives().args); err != nil {
 		DefaultConfig.Logger.Error("failed to parse flags", "cause", err)
 		os.Exit(1)
 	}
 
 	if flagIdx := flagIndexes.lastByName("nested"); flagIdx != nil {
-		nestedFlag.ParseFlags(set, flagIdx.args)
+		x.nestedFlag.ParseFlags(x.set, flagIdx.args)
 	}
 
-	if nestedFlag.Changed() {
+	if x.nestedFlag.Changed() {
 		x.changed = true
-		x.Nested = nestedFlag.NestedRequest_Nested
+		x.Nested = x.nestedFlag.NestedRequest_Nested
 	}
 
-	if idFlag.Changed() {
+	if x.idFlag.Changed() {
 		x.changed = true
-		x.Id = *idFlag.Value
+		x.Id = *x.idFlag.Value
 	}
 }
 
@@ -265,28 +314,35 @@ type NestedRequest_NestedFlag struct {
 	*NestedRequest_Nested
 
 	changed bool
+	set     *pflag.FlagSet
+
+	idFlag    *StringParser
+	depthFlag *Int32Parser
+}
+
+func (x *NestedRequest_NestedFlag) AddFlags(parent *pflag.FlagSet) {
+	x.set = pflag.NewFlagSet("NestedRequest_Nested", pflag.ContinueOnError)
+	parent.AddFlagSet(x.set)
+
+	x.idFlag = NewStringFlag(x.set, "id", "")
+	x.depthFlag = NewInt32Flag(x.set, "depth", "")
 }
 
 func (x *NestedRequest_NestedFlag) ParseFlags(parent *pflag.FlagSet, args []string) {
-	set := pflag.NewFlagSet("NestedRequest_Nested", pflag.ContinueOnError)
-	parent.AddFlagSet(set)
 	flagIndexes := fieldIndexes(args)
 
-	idFlag := NewStringFlag(set, "id", "")
-	depthFlag := NewInt32Flag(set, "depth", "")
-
-	if err := set.Parse(flagIndexes.primitives().args); err != nil {
+	if err := x.set.Parse(flagIndexes.primitives().args); err != nil {
 		DefaultConfig.Logger.Error("failed to parse flags", "cause", err)
 		os.Exit(1)
 	}
 
-	if idFlag.Changed() {
+	if x.idFlag.Changed() {
 		x.changed = true
-		x.Id = *idFlag.Value
+		x.Id = *x.idFlag.Value
 	}
-	if depthFlag.Changed() {
+	if x.depthFlag.Changed() {
 		x.changed = true
-		x.Depth = *depthFlag.Value
+		x.Depth = *x.depthFlag.Value
 	}
 }
 

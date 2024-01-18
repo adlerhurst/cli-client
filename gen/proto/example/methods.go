@@ -17,104 +17,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// func (x *CallRequest) ParseFlags(cmd *cobra.Command, args []string) {
-// 	set := pflag.NewFlagSet("request", pflag.ContinueOnError)
-// 	cmd.Flags().AddFlagSet(set)
-
-// 	_UseFieldName := NewStringFlag(set, "use_field_name", ``, "")
-// 	_UseCustomName := NewStringFlag(set, "custom", ``, "")
-// 	_IsSomething := NewBoolFlag(set, "is_something", ``, false)
-// 	_I32 := NewInt32Flag(set, "i32", ``, 0)
-// 	_Ui32 := NewUint32Flag(set, "ui32", ``, 0)
-// 	_I64 := NewInt64Flag(set, "i64", ``, 0)
-// 	_Ui64 := NewUint64Flag(set, "ui64", ``, 0)
-// 	_Fl := NewFloatFlag(set, "fl", ``, 0)
-// 	_Dbl := NewDoubleFlag(set, "dbl", ``, 0)
-// 	_Beiz := NewBytesFlag(set, "beiz", ``, nil)
-// 	_Si32 := NewInt32Flag(set, "si32", ``, 0)
-// 	_Si64 := NewInt64Flag(set, "si64", ``, 0)
-// 	_F32 := NewUint32Flag(set, "f32", ``, 0)
-// 	_F64 := NewUint64Flag(set, "f64", ``, 0)
-// 	_Sf32 := NewInt32Flag(set, "sf32", ``, 0)
-// 	_Sf64 := NewInt64Flag(set, "sf64", ``, 0)
-// 	_RepS := NewDoubleSliceFlag(set, "rep_s", ``, nil)
-
-// 	_Payload := NewStructFlag(set, "payload", ``)
-// 	_CreatedAt := NewTimestampFlag(set, "created_at", ``)
-
-// 	_Wat := NewEnumFlag[CallRequest_Wat](set, "wat", ``)
-// 	_Some := NewEnumFlag[Some](set, "some", ``)
-// 	_RepWat := NewEnumSliceFlag[CallRequest_Wat](set, "rep_wat", ``)
-
-// 	flagIndexes := fieldIndexes(args, "nested", "rep_nest")
-
-// 	// parse primitive flags before first nested
-// 	if err := set.Parse(flagIndexes.primitives().args); err != nil {
-// 		DefaultConfig.Logger.Error("failed to parse flags", "cause", err)
-// 		os.Exit(1)
-// 	}
-
-// 	x.UseFieldName = *_UseFieldName.Value
-// 	x.UseCustomName = *_UseCustomName.Value
-// 	x.IsSomething = *_IsSomething.Value
-// 	x.I32 = *_I32.Value
-// 	x.Ui32 = *_Ui32.Value
-// 	x.I64 = *_I64.Value
-// 	x.Ui64 = *_Ui64.Value
-// 	x.Fl = *_Fl.Value
-// 	x.Dbl = *_Dbl.Value
-// 	x.Beiz = *_Beiz.Value
-// 	x.Si32 = *_Si32.Value
-// 	x.Si64 = *_Si64.Value
-// 	x.F32 = *_F32.Value
-// 	x.F64 = *_F64.Value
-// 	x.Sf32 = *_Sf32.Value
-// 	x.Sf64 = *_Sf64.Value
-// 	x.RepS = *_RepS.Value
-// 	x.Payload = _Payload.Value
-// 	x.CreatedAt = _CreatedAt.Value
-
-// 	x.Wat = *_Wat.Value
-// 	x.Some = *_Some.Value
-// 	x.RepWat = *_RepWat.Value
-
-// 	if flagIdx := flagIndexes.lastByName("nested"); flagIdx != nil {
-// 		x.Nested = new(CallRequest_Nested)
-// 		x.Nested.ParseFlags(flagIdx.args)
-// 	}
-
-// 	for _, idx := range flagIndexes.byName("rep_nest") {
-// 		x.RepNest = append(x.RepNest, new(CallRequest_Nested))
-// 		x.RepNest[len(x.RepNest)-1].ParseFlags(idx.args)
-// 	}
-// }
-
-// func (x *NestedRequest_Nested) ParseFlags(args []string) {
-// 	set := pflag.NewFlagSet("nested", pflag.ContinueOnError)
-// 	_Id := NewStringFlag(set, "id", ``)
-// 	_Depth := NewInt32Flag(set, "depth", ``)
-
-// 	if err := set.Parse(args); err != nil {
-// 		DefaultConfig.Logger.Error("failed to parse flags", "cause", err)
-// 		os.Exit(1)
-// 	}
-
-// 	x.Id = *_Id.Value
-// 	x.Depth = *_Depth.Value
-// }
-
-// func (x *CallRequest_Nested) ParseFlags(args []string) {
-// 	set := pflag.NewFlagSet("nested", pflag.ContinueOnError)
-// 	Field := NewStringFlag(set, "field", ``)
-
-// 	if err := set.Parse(args); err != nil {
-// 		DefaultConfig.Logger.Error("failed to parse flags", "cause", err)
-// 		os.Exit(1)
-// 	}
-
-// 	x.Field = *Field.Value
-// }
-
 type argParser[T any] struct {
 	*primitiveParser[T]
 	customParser func(field *T, arg string) error
@@ -207,44 +109,64 @@ func (v *argParser[T]) Type() string {
 	return string(value.ProtoReflect().Type().Descriptor().FullName())
 }
 
-func NewStructFlag(set *pflag.FlagSet, name, usage string) *argParser[structpb.Struct] {
+type StructParser struct {
+	*argParser[structpb.Struct]
+}
+
+func NewStructFlag(set *pflag.FlagSet, name, usage string) *StructParser {
 	parser := newArgParser[structpb.Struct](set, name)
 	parser.Value = new(structpb.Struct)
 	set.Var(parser, name, usage)
-	return parser
+	return &StructParser{argParser: parser}
 }
 
-func NewStructSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]*structpb.Struct]) *argParser[[]*structpb.Struct] {
+type StructSliceParser struct {
+	*argParser[[]*structpb.Struct]
+}
+
+func NewStructSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]*structpb.Struct]) *StructSliceParser {
 	parser := newArgParser[[]*structpb.Struct](set, name)
 	parser.applyOpts(opts)
 	parser.Value = new([]*structpb.Struct)
 	set.Var(parser, name, usage)
-	return parser
+	return &StructSliceParser{argParser: parser}
 }
 
-func NewAnyFlag(set *pflag.FlagSet, name, usage string) *argParser[anypb.Any] {
+type AnyParser struct {
+	*argParser[anypb.Any]
+}
+
+func NewAnyFlag(set *pflag.FlagSet, name, usage string) *AnyParser {
 	parser := newArgParser[anypb.Any](set, name)
 	// TODO: change to message
 	parser.Value = new(anypb.Any)
 	set.Var(parser, name, usage)
-	return parser
+	return &AnyParser{argParser: parser}
 }
 
-func NewTimestampFlag(set *pflag.FlagSet, name, usage string) *argParser[timestamppb.Timestamp] {
+type TimestampParser struct {
+	*argParser[timestamppb.Timestamp]
+}
+
+func NewTimestampFlag(set *pflag.FlagSet, name, usage string) *TimestampParser {
 	parser := newArgParser[timestamppb.Timestamp](set, name)
 	parser.Value = new(timestamppb.Timestamp)
 	parser.customParser = timestampParser
 	set.Var(parser, name, usage)
-	return parser
+	return &TimestampParser{argParser: parser}
 }
 
-func NewTimestampSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]*timestamppb.Timestamp]) *argParser[[]*timestamppb.Timestamp] {
+type TimestampSliceParser struct {
+	*argParser[[]*timestamppb.Timestamp]
+}
+
+func NewTimestampSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]*timestamppb.Timestamp]) *TimestampSliceParser {
 	parser := newArgParser[[]*timestamppb.Timestamp](set, name)
 	parser.applyOpts(opts)
 	parser.Value = new([]*timestamppb.Timestamp)
 	parser.customParser = slicePtrParser[timestamppb.Timestamp](timestampParser)
 	set.Var(parser, name, usage)
-	return parser
+	return &TimestampSliceParser{argParser: parser}
 }
 
 func timestampParser(field *timestamppb.Timestamp, arg string) error {
@@ -256,21 +178,29 @@ func timestampParser(field *timestamppb.Timestamp, arg string) error {
 	return nil
 }
 
-func NewDurationFlag(set *pflag.FlagSet, name, usage string) *argParser[durationpb.Duration] {
+type DurationParser struct {
+	*argParser[durationpb.Duration]
+}
+
+func NewDurationFlag(set *pflag.FlagSet, name, usage string) *DurationParser {
 	parser := newArgParser[durationpb.Duration](set, name)
 	parser.Value = new(durationpb.Duration)
 	parser.customParser = durationParser
 	set.Var(parser, name, usage)
-	return parser
+	return &DurationParser{argParser: parser}
 }
 
-func NewDurationSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]*durationpb.Duration]) *argParser[[]*durationpb.Duration] {
+type DurationSliceParser struct {
+	*argParser[[]*durationpb.Duration]
+}
+
+func NewDurationSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]*durationpb.Duration]) *DurationSliceParser {
 	parser := newArgParser[[]*durationpb.Duration](set, name)
 	parser.applyOpts(opts)
 	parser.Value = new([]*durationpb.Duration)
 	parser.customParser = slicePtrParser[durationpb.Duration](durationParser)
 	set.Var(parser, name, usage)
-	return parser
+	return &DurationSliceParser{argParser: parser}
 }
 
 func durationParser(field *durationpb.Duration, arg string) error {
@@ -288,22 +218,30 @@ type enum interface {
 	String() string
 }
 
-func NewEnumFlag[E enum](set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[E]) *argParser[E] {
+type EnumParser[E enum] struct {
+	*argParser[E]
+}
+
+func NewEnumFlag[E enum](set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[E]) *EnumParser[E] {
 	parser := newArgParser[E](set, name)
 	parser.applyOpts(opts)
 	parser.Value = new(E)
 	parser.customParser = enumParser[E]
 	set.Var(parser, name, usage)
-	return parser
+	return &EnumParser[E]{argParser: parser}
 }
 
-func NewEnumSliceFlag[E enum](set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]E]) *argParser[[]E] {
+type EnumSliceParser[E enum] struct {
+	*argParser[[]E]
+}
+
+func NewEnumSliceFlag[E enum](set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]E]) *EnumSliceParser[E] {
 	parser := newArgParser[[]E](set, name)
 	parser.applyOpts(opts)
 	parser.Value = new([]E)
 	parser.customParser = sliceParser(enumParser[E])
 	set.Var(parser, name, usage)
-	return parser
+	return &EnumSliceParser[E]{argParser: parser}
 }
 
 func sliceParser[T any](parser func(*T, string) error) func(*[]T, string) error {
@@ -369,106 +307,178 @@ func enumParser[E enum](field *E, arg string) error {
 	return errors.New("unknown enum variable")
 }
 
-func NewStringFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[string]) *primitiveParser[string] {
+type StringParser struct {
+	*primitiveParser[string]
+}
+
+func NewStringFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[string]) *StringParser {
 	parser := newPrimitiveParser[string](set, name, opts...)
 	parser.Value = new(string)
 	set.StringVar(parser.Value, name, parser.defaultValue, usage)
-	return parser
+	return &StringParser{primitiveParser: parser}
 }
 
-func NewStringSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]string]) *primitiveParser[[]string] {
+type StringSliceParser struct {
+	*primitiveParser[[]string]
+}
+
+func NewStringSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]string]) *StringSliceParser {
 	parser := newPrimitiveParser[[]string](set, name, opts...)
 	parser.Value = new([]string)
 	set.StringSliceVar(parser.Value, name, parser.defaultValue, usage)
-	return parser
+	return &StringSliceParser{primitiveParser: parser}
 }
 
-func NewBoolFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[bool]) *primitiveParser[bool] {
+type BoolParser struct {
+	*primitiveParser[bool]
+}
+
+func NewBoolFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[bool]) *BoolParser {
 	parser := newPrimitiveParser[bool](set, name, opts...)
 	parser.Value = new(bool)
 	set.BoolVar(parser.Value, name, parser.defaultValue, usage)
-	return parser
+	return &BoolParser{primitiveParser: parser}
 }
 
-func NewBoolSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]bool]) *primitiveParser[[]bool] {
+type BoolSliceParser struct {
+	*primitiveParser[[]bool]
+}
+
+func NewBoolSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]bool]) *BoolSliceParser {
 	parser := newPrimitiveParser[[]bool](set, name, opts...)
 	parser.Value = new([]bool)
 	set.BoolSliceVar(parser.Value, name, parser.defaultValue, usage)
-	return parser
+	return &BoolSliceParser{primitiveParser: parser}
 }
 
-func NewInt32Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[int32]) *primitiveParser[int32] {
+type Int32Parser struct {
+	*primitiveParser[int32]
+}
+
+func NewInt32Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[int32]) *Int32Parser {
 	parser := newPrimitiveParser[int32](set, name, opts...)
 	parser.Value = new(int32)
 	set.Int32Var(parser.Value, name, parser.defaultValue, usage)
-	return parser
+	return &Int32Parser{primitiveParser: parser}
 }
 
-func NewInt32SliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]int32]) *primitiveParser[[]int32] {
+type Int32SliceParser struct {
+	*primitiveParser[[]int32]
+}
+
+func NewInt32SliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]int32]) *Int32SliceParser {
 	parser := newPrimitiveParser[[]int32](set, name, opts...)
 	parser.Value = new([]int32)
 	set.Int32SliceVar(parser.Value, name, parser.defaultValue, usage)
-	return parser
+	return &Int32SliceParser{primitiveParser: parser}
 }
 
-func NewSint32Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[int32]) *primitiveParser[int32] {
-	return NewInt32Flag(set, name, usage, opts...)
+type Sint32Parser struct {
+	*primitiveParser[int32]
 }
 
-func NewSfixed32Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[int32]) *primitiveParser[int32] {
-	return NewInt32Flag(set, name, usage, opts...)
+func NewSint32Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[int32]) *Sint32Parser {
+	return (*Sint32Parser)(NewInt32Flag(set, name, usage, opts...))
 }
 
-func NewUint32Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[uint32]) *primitiveParser[uint32] {
+type Sfixed32Parser struct {
+	*primitiveParser[int32]
+}
+
+func NewSfixed32Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[int32]) *Sfixed32Parser {
+	return (*Sfixed32Parser)(NewInt32Flag(set, name, usage, opts...))
+}
+
+type Uint32Parser struct {
+	*primitiveParser[uint32]
+}
+
+func NewUint32Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[uint32]) *Uint32Parser {
 	parser := newPrimitiveParser[uint32](set, name, opts...)
 	parser.Value = new(uint32)
 	set.Uint32Var(parser.Value, name, parser.defaultValue, usage)
-	return parser
+	return &Uint32Parser{primitiveParser: parser}
 }
 
-func NewFixed32Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[uint32]) *primitiveParser[uint32] {
-	return NewUint32Flag(set, name, usage, opts...)
+type Fixed32Parser struct {
+	*primitiveParser[uint32]
 }
 
-func NewUint32SliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]uint]) *primitiveParser[[]uint] {
-	return newUintSliceFlag(set, name, usage, opts...)
+func NewFixed32Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[uint32]) *Fixed32Parser {
+	return (*Fixed32Parser)(NewUint32Flag(set, name, usage, opts...))
 }
 
-func NewInt64Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[int64]) *primitiveParser[int64] {
+type Uint32SliceParser struct {
+	*primitiveParser[[]uint]
+}
+
+func NewUint32SliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]uint]) *Uint32SliceParser {
+	return &Uint32SliceParser{primitiveParser: newUintSliceFlag(set, name, usage, opts...)}
+}
+
+type Int64Parser struct {
+	*primitiveParser[int64]
+}
+
+func NewInt64Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[int64]) *Int64Parser {
 	parser := newPrimitiveParser[int64](set, name, opts...)
 	parser.Value = new(int64)
 	set.Int64Var(parser.Value, name, parser.defaultValue, usage)
-	return parser
+	return &Int64Parser{primitiveParser: parser}
 }
 
-func NewSint64Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[int64]) *primitiveParser[int64] {
-	return NewInt64Flag(set, name, usage, opts...)
+type Sint64Parser struct {
+	*primitiveParser[int64]
 }
 
-func NewSfixed64Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[int64]) *primitiveParser[int64] {
-	return NewInt64Flag(set, name, usage, opts...)
+func NewSint64Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[int64]) *Sint64Parser {
+	return (*Sint64Parser)(NewInt64Flag(set, name, usage, opts...))
 }
 
-func NewInt64SliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]int64]) *primitiveParser[[]int64] {
+type Sfixed64Parser struct {
+	*primitiveParser[int64]
+}
+
+func NewSfixed64Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[int64]) *Sfixed64Parser {
+	return (*Sfixed64Parser)(NewInt64Flag(set, name, usage, opts...))
+}
+
+type Int64SliceParser struct {
+	*primitiveParser[[]int64]
+}
+
+func NewInt64SliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]int64]) *Int64SliceParser {
 	parser := newPrimitiveParser[[]int64](set, name, opts...)
 	parser.Value = new([]int64)
 	set.Int64SliceVar(parser.Value, name, parser.defaultValue, usage)
-	return parser
+	return &Int64SliceParser{primitiveParser: parser}
 }
 
-func NewUint64Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[uint64]) *primitiveParser[uint64] {
+type Uint64Parser struct {
+	*primitiveParser[uint64]
+}
+
+func NewUint64Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[uint64]) *Uint64Parser {
 	parser := newPrimitiveParser[uint64](set, name, opts...)
 	parser.Value = new(uint64)
 	set.Uint64Var(parser.Value, name, parser.defaultValue, usage)
-	return parser
+	return &Uint64Parser{primitiveParser: parser}
 }
 
-func NewFixed64Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[uint64]) *primitiveParser[uint64] {
-	return NewUint64Flag(set, name, usage, opts...)
+type Fixed64Parser struct {
+	*primitiveParser[uint64]
 }
 
-func NewUint64SliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]uint]) *primitiveParser[[]uint] {
-	return newUintSliceFlag(set, name, usage, opts...)
+func NewFixed64Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[uint64]) *Fixed64Parser {
+	return (*Fixed64Parser)(NewUint64Flag(set, name, usage, opts...))
+}
+
+type Uint64SliceParser struct {
+	*primitiveParser[[]uint]
+}
+
+func NewUint64SliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]uint]) *Uint64SliceParser {
+	return &Uint64SliceParser{primitiveParser: newUintSliceFlag(set, name, usage, opts...)}
 }
 
 func newUintSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]uint]) *primitiveParser[[]uint] {
@@ -478,37 +488,57 @@ func newUintSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveP
 	return parser
 }
 
-func NewFloatFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[float32]) *primitiveParser[float32] {
+type FloatParser struct {
+	*primitiveParser[float32]
+}
+
+func NewFloatFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[float32]) *FloatParser {
 	parser := newPrimitiveParser[float32](set, name, opts...)
 	parser.Value = new(float32)
 	set.Float32Var(parser.Value, name, parser.defaultValue, usage)
-	return parser
+	return &FloatParser{primitiveParser: parser}
 }
 
-func NewFloatSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]float32]) *primitiveParser[[]float32] {
+type FloatSliceParser struct {
+	*primitiveParser[[]float32]
+}
+
+func NewFloatSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]float32]) *FloatSliceParser {
 	parser := newPrimitiveParser[[]float32](set, name, opts...)
 	parser.Value = new([]float32)
 	set.Float32SliceVar(parser.Value, name, parser.defaultValue, usage)
-	return parser
+	return &FloatSliceParser{primitiveParser: parser}
 }
 
-func NewDoubleFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[float64]) *primitiveParser[float64] {
+type DoubleParser struct {
+	*primitiveParser[float64]
+}
+
+func NewDoubleFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[float64]) *DoubleParser {
 	parser := newPrimitiveParser[float64](set, name, opts...)
 	parser.Value = new(float64)
 	set.Float64Var(parser.Value, name, parser.defaultValue, usage)
-	return parser
+	return &DoubleParser{primitiveParser: parser}
 }
 
-func NewDoubleSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]float64]) *primitiveParser[[]float64] {
+type DoubleSliceParser struct {
+	*primitiveParser[[]float64]
+}
+
+func NewDoubleSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]float64]) *DoubleSliceParser {
 	parser := newPrimitiveParser[[]float64](set, name, opts...)
 	parser.Value = new([]float64)
 	set.Float64SliceVar(parser.Value, name, parser.defaultValue, usage)
-	return parser
+	return &DoubleSliceParser{primitiveParser: parser}
 }
 
-func NewBytesFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]byte]) *primitiveParser[[]byte] {
+type BytesParser struct {
+	*primitiveParser[[]byte]
+}
+
+func NewBytesFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]byte]) *BytesParser {
 	parser := newPrimitiveParser[[]byte](set, name, opts...)
 	parser.Value = new([]byte)
 	set.BytesBase64Var(parser.Value, name, parser.defaultValue, usage)
-	return parser
+	return &BytesParser{primitiveParser: parser}
 }

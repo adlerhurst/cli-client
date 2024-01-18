@@ -15,11 +15,34 @@ type Flag struct {
 	OneOf   *oneOfFlag
 }
 
-func (flag *Flag) FlagConstructor() string {
+func (flag *Flag) FlagField() string {
 	var builder strings.Builder
 
 	builder.WriteString(flag.VarName())
-	builder.WriteString(" := ")
+	builder.WriteString(" *")
+	builder.WriteString(title.String(flag.typ()))
+
+	if flag.IsList() {
+		builder.WriteString("Slice")
+	}
+
+	builder.WriteString("Parser")
+
+	if flag.Enum != nil {
+		builder.WriteString("[")
+		builder.WriteString(flag.Enum.Type())
+		builder.WriteString("]")
+	}
+
+	return builder.String()
+}
+
+func (flag *Flag) FlagConstructor() string {
+	var builder strings.Builder
+
+	builder.WriteString("x.")
+	builder.WriteString(flag.VarName())
+	builder.WriteString(" = ")
 
 	builder.WriteString("New")
 	builder.WriteString(title.String(flag.typ()))
@@ -34,7 +57,7 @@ func (flag *Flag) FlagConstructor() string {
 		builder.WriteString(flag.Enum.Type())
 		builder.WriteString("]")
 	}
-	builder.WriteString(`(set, "`)
+	builder.WriteString(`(x.set, "`)
 	builder.WriteString(flag.FieldNamePrivate())
 	builder.WriteString(`", "")`)
 
@@ -45,8 +68,8 @@ func (flag *Flag) IsList() bool {
 	return flag.Desc.IsList()
 }
 
-func (flag *Flag) IsPrimitive() bool {
-	return flag.Message == nil
+func (flag *Flag) isPrimitive() bool {
+	return flag.Message == nil && flag.Enum == nil && flag.Oneof == nil
 }
 
 func (flag *Flag) FieldName() string {

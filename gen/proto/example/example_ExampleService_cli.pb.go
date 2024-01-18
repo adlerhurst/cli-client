@@ -37,6 +37,7 @@ var (
 
 func init() {
 	ExampleCmd.AddCommand(ExampleMyCallCmd)
+	_ExampleMyCallCmdRequest.AddFlags(ExampleMyCallCmd.Flags())
 	ExampleMyCallCmd.PreRun = func(cmd *cobra.Command, args []string) {
 		_ExampleMyCallCmdRequest.ParseFlags(cmd.Flags(), args)
 	}
@@ -44,6 +45,9 @@ func init() {
 
 func runExampleMyCallCmd(cmd *cobra.Command, args []string) {
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		if !f.Changed {
+			return
+		}
 		DefaultConfig.Logger.Info("flag", "name", f.Name, "value", f.Value.String(), "changed", f.Changed)
 	})
 }
@@ -62,6 +66,7 @@ var (
 
 func init() {
 	ExampleCmd.AddCommand(ExampleMyNestedCallCmd)
+	_ExampleMyNestedCallCmdRequest.AddFlags(ExampleMyNestedCallCmd.Flags())
 	ExampleMyNestedCallCmd.PreRun = func(cmd *cobra.Command, args []string) {
 		_ExampleMyNestedCallCmdRequest.ParseFlags(cmd.Flags(), args)
 	}
@@ -69,6 +74,9 @@ func init() {
 
 func runExampleMyNestedCallCmd(cmd *cobra.Command, args []string) {
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		if !f.Changed {
+			return
+		}
 		DefaultConfig.Logger.Info("flag", "name", f.Name, "value", f.Value.String(), "changed", f.Changed)
 	})
 }
