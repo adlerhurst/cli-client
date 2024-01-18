@@ -1,36 +1,40 @@
-{{range $key, $value := .}}
+{{range $value := .}}
+
+type {{$value.Message.GoIdent.GoName}}Flag struct{
+    *{{$value.Message.GoIdent.GoName}}
+
+    set *pflag.FlagSet
+    name string
+}
 
 func(x *{{$value.Message.GoIdent.GoName}}) ParseFlags(parent *pflag.FlagSet, args []string) {
     set := pflag.NewFlagSet("{{$value.Message.GoIdent.GoName}}", pflag.ContinueOnError)
     parent.AddFlagSet(set)
+    flagIndexes := fieldIndexes(args, {{$value.NestedFlagNames}})
 
     {{range $value.Flags -}}
         {{if not .Message -}}
     {{.FlagConstructor}}
+        {{else -}}
+            {{if not .IsList -}}
+    {{.VarName}} := new({{.Message.Type}})
+            {{else -}}
+    {{.VarName}} := make([]*{{.Message.Type}}, len(flagIndexes.byName("{{.FieldNamePrivate}}")))
+            {{end -}}
         {{end -}}
     {{end}}
 
-    {{if $value.HasMessageFlags}}
-    flagIndexes := fieldIndexes(args, {{$value.NestedFlagNames}})
-    {{end}}
 
-    if err := set.Parse(args); err != nil {
+    if err := set.Parse(flagIndexes.primitives().args); err != nil {
 		DefaultConfig.Logger.Error("failed to parse flags", "cause", err)
 		os.Exit(1)
 	}
-
-    {{range $value.Flags -}}
-        {{if not .Message -}}
-    x.{{.Name}} = {{if not .IsPtr}}*{{end}}{{.VarName}}.Value
-        {{end -}}
-    {{end -}}
 
     {{range $value.Flags}}
         {{if .Message -}}
             {{if not .IsList -}}
     if flagIdx := flagIndexes.lastByName("{{.FieldNamePrivate}}"); flagIdx != nil {
-    	x.{{.Name}} = new({{.Message.Type}})
-    	x.{{.Name}}.ParseFlags(set, flagIdx.args)
+    	{{.VarName}}.ParseFlags(set, flagIdx.args)
     }
             {{end -}}
         {{end -}}
@@ -38,13 +42,42 @@ func(x *{{$value.Message.GoIdent.GoName}}) ParseFlags(parent *pflag.FlagSet, arg
 
     {{range $value.Flags}}
         {{if .Message -}}
-            {{if .IsList -}}
-    for _, flagIdx := range flagIndexes.byName("{{.FieldNamePrivate}}") {
-    	x.{{.Name}} = append(x.{{.Name}}, new({{.Message.Type}}))
-    	x.{{.Name}}[len(x.{{.Name}})-1].ParseFlags(set, flagIdx.args)
+            {{if not .OneOf -}}
+                {{if .IsList -}}
+    for i, flagIdx := range flagIndexes.byName("{{.FieldNamePrivate}}") {
+    	{{.VarName}}[i] = new({{.Message.Type}})
+    	{{.VarName}}[i].ParseFlags(set, flagIdx.args)
     }
+                {{end -}}
             {{end -}}
         {{end -}}
+    {{end -}}
+
+    {{range $value.Flags -}}
+        {{if not .OneOf -}}
+            {{if .IsPrimitive -}}
+    if {{.VarName}}.Changed() {
+        x.{{.Name}} = {{if not .IsPtr}}*{{end}}{{.VarName}}.Value
+    }
+            {{else -}}
+    x.{{.Name}} = {{.VarName}}
+            {{end -}}
+        {{end -}}
+    {{end -}}
+
+    {{range $oneOf := $value.OneOfs}}
+    switch fieldIndexes(args, {{$oneOf.FieldNames}}).last().flag {
+        {{range .Flags -}}
+        case "{{.FieldNamePrivate}}":
+            {{if .IsPrimitive -}}
+            if {{.VarName}}.Changed() {
+                x.{{$oneOf.FieldName}} = &{{.Type}}{ *{{.VarName}}.Value }
+            }
+            {{else -}}
+            x.{{$oneOf.FieldName}} = &{{.Type}}{ {{.VarName}} }
+            {{end -}}
+        {{end -}}
+    }
     {{end -}}
 }
 

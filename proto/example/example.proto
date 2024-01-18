@@ -61,7 +61,7 @@ message CallRequest {
     optional google.protobuf.Struct payload = 6 [(cli.v1alpha.ignore_fields) = true];
     Wat wat = 7;
     bool is_something = 8;
-    int32 i32 = 9;
+    optional int32 i32 = 9;
     uint32 ui32 = 10;
     int64 i64 = 11;
     uint64 ui64 = 12;
@@ -78,6 +78,12 @@ message CallRequest {
     repeated double rep_s = 23;
     repeated Wat rep_wat = 24;
     optional google.protobuf.Any something = 25;
+
+    oneof oo {
+        string oo_text = 26;
+        Wat oo_wat = 27;
+        Nested oo_nested = 28;
+    }
 }
 
 enum Some {

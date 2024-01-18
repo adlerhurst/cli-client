@@ -4,22 +4,33 @@ import "strings"
 
 type indexes []*index
 
-func (idxs indexes) byName(name string) (res []*index) {
+func (idxs indexes) byName(names ...string) (res []*index) {
 	for _, idx := range idxs {
-		if idx.flag == name {
+		for _, name := range names {
+			if idx.flag != name {
+				continue
+			}
 			res = append(res, idx)
+			break
 		}
 	}
 	return res
 }
 
-func (idxs indexes) lastByName(name string) *index {
+func (idxs indexes) lastByName(names ...string) *index {
 	for i := len(idxs) - 1; i >= 0; i-- {
-		if idxs[i].flag == name {
+		for _, name := range names {
+			if idxs[i].flag != name {
+				continue
+			}
 			return idxs[i]
 		}
 	}
 	return nil
+}
+
+func (idxs indexes) last() *index {
+	return idxs[len(idxs)-1]
 }
 
 func (idxs indexes) primitives() *index {

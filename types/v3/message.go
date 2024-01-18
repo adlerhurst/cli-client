@@ -2,7 +2,6 @@ package types
 
 import (
 	_ "embed"
-	"log/slog"
 	"strings"
 	"text/template"
 
@@ -15,8 +14,14 @@ var messages = Messages{}
 type Messages map[protoreflect.FullName]*Message
 
 type Message struct {
-	Message *protogen.Message
-	Flags   []*Flag
+	*protogen.Message
+	Flags  []*Flag
+	OneOfs []*OneOf
+}
+
+type OneOf struct {
+	*oneOfFlag
+	Flags []*Flag
 }
 
 func (msg *Message) NestedFlagNames() string {
@@ -25,7 +30,7 @@ func (msg *Message) NestedFlagNames() string {
 		if flag.Message == nil {
 			continue
 		}
-		flagNames = append(flagNames, `"`+flag.FieldNamePrivate+`"`)
+		flagNames = append(flagNames, `"`+flag.FieldNamePrivate()+`"`)
 	}
 
 	return strings.Join(flagNames, ", ")
@@ -46,22 +51,18 @@ func SetMessages(service *protogen.Service) {
 	}
 }
 
-var wellknownArgParsers = map[protoreflect.FullName]*Flag{
+var customFlags = map[protoreflect.FullName]*customFlag{
 	"google.protobuf.Timestamp": {
-		FieldName: "timestamppb.Timestamp",
-		Kind:      "timestamp",
+		Type: "timestamp",
 	},
 	"google.protobuf.Duration": {
-		FieldName: "durationpb.Duration",
-		Kind:      "duration",
+		Type: "duration",
 	},
 	"google.protobuf.Struct": {
-		FieldName: "structpb.Struct",
-		Kind:      "struct",
+		Type: "struct",
 	},
 	"google.protobuf.Any": {
-		FieldName: "anypb.Any",
-		Kind:      "any",
+		Type: "any",
 	},
 }
 
@@ -70,43 +71,66 @@ func setMessage(message *protogen.Message) {
 		return
 	}
 
-	msg := &Message{Message: message, Flags: make([]*Flag, len(message.Fields))}
+	msg := &Message{
+		Message: message,
+		Flags:   make([]*Flag, len(message.Fields)),
+		OneOfs:  make([]*OneOf, 0, len(message.Oneofs)),
+	}
 	messages[message.Desc.FullName()] = msg
+
+	for _, oneOf := range message.Oneofs {
+		if isOneOfOptional(oneOf, message.Fields) {
+			continue
+		}
+		oo := &OneOf{
+			oneOfFlag: &oneOfFlag{Oneof: oneOf},
+			Flags:     make([]*Flag, len(oneOf.Fields)),
+		}
+		msg.OneOfs = append(msg.OneOfs, oo)
+		for i, oneOfField := range oneOf.Fields {
+			flag := &Flag{
+				Field: oneOfField,
+				OneOf: &oneOfFlag{Oneof: oneOf},
+			}
+			oo.Flags[i] = flag
+			if oneOfField.Message != nil {
+				if wellknownFlag, ok := customFlags[oneOfField.Message.Desc.FullName()]; ok {
+					flag.Custom = wellknownFlag
+					continue
+				}
+				flag.Message = &messageFlag{Message: oneOfField.Message}
+				setMessage(oneOfField.Message)
+			}
+		}
+	}
+
 	for i, field := range message.Fields {
 		flag := &Flag{
-			IsList:           field.Desc.IsList(),
-			FieldName:        field.GoName,
-			FieldNamePrivate: field.Desc.JSONName(),
-			Name:             field.GoName,
-			Kind:             field.Desc.Kind().String(),
-			IsPtr:            field.Desc.HasOptionalKeyword(),
+			Field: field,
 		}
 		msg.Flags[i] = flag
 
+		for _, oneOf := range msg.OneOfs {
+			if field.Oneof == nil || oneOf.GoName != field.Oneof.GoName {
+				continue
+			}
+			flag.OneOf = oneOf.oneOfFlag
+			break
+		}
+
 		if field.Enum != nil {
-			flag.Enum = &enumFlag{Type: field.Enum.GoIdent.GoName}
+			flag.Enum = &enumFlag{Enum: field.Enum}
 			continue
 		}
 
 		if field.Message != nil {
-			flag.IsPtr = true
-			if wellknownFlag, ok := wellknownArgParsers[field.Message.Desc.FullName()]; ok {
-				flag.FieldName = wellknownFlag.FieldName
-				flag.Kind = wellknownFlag.Kind
+			if wellknownFlag, ok := customFlags[field.Message.Desc.FullName()]; ok {
+				flag.Custom = wellknownFlag
 				continue
 			}
-			flag.Message = &messageFlag{
-				Type: field.Message.GoIdent.GoName,
-			}
+			flag.Message = &messageFlag{Message: field.Message}
 			setMessage(field.Message)
 			continue
-		}
-
-		if field.Oneof != nil {
-			slog.Info("oneof", "field", field.GoName)
-			for _, field := range field.Oneof.Fields {
-				slog.Info("oneoffield", "name", field.GoIdent)
-			}
 		}
 	}
 }
@@ -139,47 +163,14 @@ func (Messages) imports(gen *protogen.GeneratedFile) {
 	gen.QualifiedGoIdent(protogen.GoImportPath("github.com/spf13/pflag").Ident("pflag"))
 }
 
-type Field struct {
-	*protogen.Field
-}
-
-func (field *Field) FlagConstructor() string {
-	var builder strings.Builder
-
-	builder.WriteString(field.VarName())
-	builder.WriteString(" := ")
-
-	builder.WriteString("New")
-	builder.WriteString(title.String(field.Desc.Kind().String()))
-
-	if field.Field.Desc.IsList() {
-		builder.WriteString("Slice")
+func isOneOfOptional(oneOf *protogen.Oneof, fields []*protogen.Field) bool {
+	for _, field := range fields {
+		if field.Oneof == nil {
+			continue
+		}
+		if field.Oneof.GoName == oneOf.GoName {
+			return field.Desc.HasOptionalKeyword()
+		}
 	}
-
-	builder.WriteString("Flag")
-	if field.Enum != nil {
-		builder.WriteString("[")
-		builder.WriteString(field.Enum.GoIdent.GoName)
-		builder.WriteString("]")
-	}
-	builder.WriteString(`(set, "`)
-	builder.WriteString(field.Desc.JSONName())
-	builder.WriteString(`", "")`)
-
-	return builder.String()
-}
-
-func (field *Field) FlagAssignment() string {
-	var builder strings.Builder
-
-	builder.WriteString("x.")
-	builder.WriteString(field.GoName)
-	builder.WriteString(" = *")
-	builder.WriteString(field.VarName())
-
-	return builder.String()
-}
-
-func (field *Field) VarName() string {
-	return field.Desc.JSONName() + "Flag"
+	return false
 }

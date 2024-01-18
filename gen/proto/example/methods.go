@@ -118,6 +118,12 @@ import (
 type argParser[T any] struct {
 	primitiveParser[T]
 	customParser func(field *T, arg string) error
+
+	changed bool
+}
+
+func (parser *argParser[T]) Changed() bool {
+	return parser.changed
 }
 
 type primitiveParserOpt[T any] func(*primitiveParser[T])
@@ -131,6 +137,22 @@ func WithDefaultValue[T any](value T) primitiveParserOpt[T] {
 type primitiveParser[T any] struct {
 	Value        *T
 	defaultValue T
+
+	set  *pflag.FlagSet
+	name string
+}
+
+func newPrimitiveParser[T any](set *pflag.FlagSet, name string, opts ...primitiveParserOpt[T]) *primitiveParser[T] {
+	parser := &primitiveParser[T]{
+		set:  set,
+		name: name,
+	}
+
+	for _, opt := range opts {
+		opt(parser)
+	}
+
+	return parser
 }
 
 func (parser *primitiveParser[T]) applyOpts(opts []primitiveParserOpt[T]) {
@@ -139,8 +161,13 @@ func (parser *primitiveParser[T]) applyOpts(opts []primitiveParserOpt[T]) {
 	}
 }
 
+func (parser *primitiveParser[T]) Changed() bool {
+	return parser.set.Changed(parser.name)
+}
+
 // Set implements pflag.Value.
 func (v *argParser[T]) Set(arg string) error {
+	v.changed = true
 	if v.customParser != nil {
 		return v.customParser(v.Value, arg)
 	}
@@ -334,48 +361,42 @@ func enumParser[E enum](field *E, arg string) error {
 }
 
 func NewStringFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[string]) *primitiveParser[string] {
-	parser := new(primitiveParser[string])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[string](set, name, opts...)
 	parser.Value = new(string)
 	set.StringVar(parser.Value, name, parser.defaultValue, usage)
 	return parser
 }
 
 func NewStringSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]string]) *primitiveParser[[]string] {
-	parser := new(primitiveParser[[]string])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[[]string](set, name, opts...)
 	parser.Value = new([]string)
 	set.StringSliceVar(parser.Value, name, parser.defaultValue, usage)
 	return parser
 }
 
 func NewBoolFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[bool]) *primitiveParser[bool] {
-	parser := new(primitiveParser[bool])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[bool](set, name, opts...)
 	parser.Value = new(bool)
 	set.BoolVar(parser.Value, name, parser.defaultValue, usage)
 	return parser
 }
 
 func NewBoolSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]bool]) *primitiveParser[[]bool] {
-	parser := new(primitiveParser[[]bool])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[[]bool](set, name, opts...)
 	parser.Value = new([]bool)
 	set.BoolSliceVar(parser.Value, name, parser.defaultValue, usage)
 	return parser
 }
 
 func NewInt32Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[int32]) *primitiveParser[int32] {
-	parser := new(primitiveParser[int32])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[int32](set, name, opts...)
 	parser.Value = new(int32)
 	set.Int32Var(parser.Value, name, parser.defaultValue, usage)
 	return parser
 }
 
 func NewInt32SliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]int32]) *primitiveParser[[]int32] {
-	parser := new(primitiveParser[[]int32])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[[]int32](set, name, opts...)
 	parser.Value = new([]int32)
 	set.Int32SliceVar(parser.Value, name, parser.defaultValue, usage)
 	return parser
@@ -390,8 +411,7 @@ func NewSfixed32Flag(set *pflag.FlagSet, name, usage string, opts ...primitivePa
 }
 
 func NewUint32Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[uint32]) *primitiveParser[uint32] {
-	parser := new(primitiveParser[uint32])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[uint32](set, name, opts...)
 	parser.Value = new(uint32)
 	set.Uint32Var(parser.Value, name, parser.defaultValue, usage)
 	return parser
@@ -406,8 +426,7 @@ func NewUint32SliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiv
 }
 
 func NewInt64Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[int64]) *primitiveParser[int64] {
-	parser := new(primitiveParser[int64])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[int64](set, name, opts...)
 	parser.Value = new(int64)
 	set.Int64Var(parser.Value, name, parser.defaultValue, usage)
 	return parser
@@ -422,16 +441,14 @@ func NewSfixed64Flag(set *pflag.FlagSet, name, usage string, opts ...primitivePa
 }
 
 func NewInt64SliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]int64]) *primitiveParser[[]int64] {
-	parser := new(primitiveParser[[]int64])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[[]int64](set, name, opts...)
 	parser.Value = new([]int64)
 	set.Int64SliceVar(parser.Value, name, parser.defaultValue, usage)
 	return parser
 }
 
 func NewUint64Flag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[uint64]) *primitiveParser[uint64] {
-	parser := new(primitiveParser[uint64])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[uint64](set, name, opts...)
 	parser.Value = new(uint64)
 	set.Uint64Var(parser.Value, name, parser.defaultValue, usage)
 	return parser
@@ -446,48 +463,42 @@ func NewUint64SliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiv
 }
 
 func newUintSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]uint]) *primitiveParser[[]uint] {
-	parser := new(primitiveParser[[]uint])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[[]uint](set, name, opts...)
 	parser.Value = new([]uint)
 	set.UintSliceVar(parser.Value, name, parser.defaultValue, usage)
 	return parser
 }
 
 func NewFloatFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[float32]) *primitiveParser[float32] {
-	parser := new(primitiveParser[float32])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[float32](set, name, opts...)
 	parser.Value = new(float32)
 	set.Float32Var(parser.Value, name, parser.defaultValue, usage)
 	return parser
 }
 
 func NewFloatSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]float32]) *primitiveParser[[]float32] {
-	parser := new(primitiveParser[[]float32])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[[]float32](set, name, opts...)
 	parser.Value = new([]float32)
 	set.Float32SliceVar(parser.Value, name, parser.defaultValue, usage)
 	return parser
 }
 
 func NewDoubleFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[float64]) *primitiveParser[float64] {
-	parser := new(primitiveParser[float64])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[float64](set, name, opts...)
 	parser.Value = new(float64)
 	set.Float64Var(parser.Value, name, parser.defaultValue, usage)
 	return parser
 }
 
 func NewDoubleSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]float64]) *primitiveParser[[]float64] {
-	parser := new(primitiveParser[[]float64])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[[]float64](set, name, opts...)
 	parser.Value = new([]float64)
 	set.Float64SliceVar(parser.Value, name, parser.defaultValue, usage)
 	return parser
 }
 
 func NewBytesFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]byte]) *primitiveParser[[]byte] {
-	parser := new(primitiveParser[[]byte])
-	parser.applyOpts(opts)
+	parser := newPrimitiveParser[[]byte](set, name, opts...)
 	parser.Value = new([]byte)
 	set.BytesBase64Var(parser.Value, name, parser.defaultValue, usage)
 	return parser

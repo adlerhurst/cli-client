@@ -1,18 +1,18 @@
 package types
 
-import "strings"
+import (
+	"strings"
+
+	"google.golang.org/protobuf/compiler/protogen"
+)
 
 type Flag struct {
-	Name             string
-	FieldName        string
-	FieldNamePrivate string
-	Kind             string
+	*protogen.Field
 
-	IsList bool
-	IsPtr  bool
-
+	Custom  *customFlag
 	Message *messageFlag
 	Enum    *enumFlag
+	OneOf   *oneOfFlag
 }
 
 func (flag *Flag) FlagConstructor() string {
@@ -22,35 +22,109 @@ func (flag *Flag) FlagConstructor() string {
 	builder.WriteString(" := ")
 
 	builder.WriteString("New")
-	builder.WriteString(title.String(flag.Kind))
+	builder.WriteString(title.String(flag.typ()))
 
-	if flag.IsList {
+	if flag.IsList() {
 		builder.WriteString("Slice")
 	}
 
 	builder.WriteString("Flag")
 	if flag.Enum != nil {
 		builder.WriteString("[")
-		builder.WriteString(flag.Enum.Type)
+		builder.WriteString(flag.Enum.Type())
 		builder.WriteString("]")
 	}
 	builder.WriteString(`(set, "`)
-	builder.WriteString(flag.FieldNamePrivate)
+	builder.WriteString(flag.FieldNamePrivate())
 	builder.WriteString(`", "")`)
 
 	return builder.String()
 }
 
+func (flag *Flag) IsList() bool {
+	return flag.Desc.IsList()
+}
+
+func (flag *Flag) IsPrimitive() bool {
+	return flag.Message == nil
+}
+
+// switch fieldIndexes(args, "ooText", "ooWat", "ooNested").last().flag {
+// case "ooText":
+// 	x.Oo = &CallRequest_OoText{OoText: *ooTextFlag.Value}
+// case "ooWat":
+// 	x.Oo = &CallRequest_OoWat{OoWat: *ooWatFlag.Value}
+// case "ooNested":
+// 	x.Oo = &CallRequest_OoNested{OoNested: ooNested}
+// }
+
+func (flag *Flag) FieldName() string {
+	return flag.GoName
+}
+
+func (flag *Flag) Name() string {
+	return flag.GoName
+}
+
+func (flag *Flag) FieldNamePrivate() string {
+	return flag.Desc.JSONName()
+}
+
+func (flag *Flag) Type() string {
+	return flag.Field.GoIdent.GoName
+}
+
+func (flag *Flag) typ() string {
+	if flag.Custom != nil {
+		return flag.Custom.Type
+	}
+	return flag.Desc.Kind().String()
+}
+
+func (flag *Flag) IsPtr() bool {
+	return flag.Desc.HasOptionalKeyword() || flag.Message != nil || flag.Custom != nil
+}
+
 func (flag *Flag) VarName() string {
-	return flag.FieldNamePrivate + "Flag"
+	return flag.FieldNamePrivate() + "Flag"
 }
 
 type messageFlag struct {
-	// ==.Message.GoIdent.GoName
-	Type string
+	*protogen.Message
+}
+
+func (flag *messageFlag) Type() string {
+	return flag.GoIdent.GoName
 }
 
 type enumFlag struct {
-	// ==.Enum.GoIdent.GoName
+	*protogen.Enum
+}
+
+func (flag *enumFlag) Type() string {
+	return flag.GoIdent.GoName
+}
+
+type oneOfFlag struct {
+	*protogen.Oneof
+}
+
+func (flag *oneOfFlag) Type() string {
+	return flag.GoIdent.GoName
+}
+
+func (flag *oneOfFlag) FieldName() string {
+	return flag.GoName
+}
+
+func (flag *oneOfFlag) FieldNames() string {
+	fields := make([]string, len(flag.Fields))
+	for i, field := range flag.Fields {
+		fields[i] = `"` + field.Desc.JSONName() + `"`
+	}
+	return strings.Join(fields, ", ")
+}
+
+type customFlag struct {
 	Type string
 }

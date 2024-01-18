@@ -95,11 +95,3 @@ func (svc *Service) name() string {
 	}
 	return name
 }
-
-// {{with .Methods -}}
-// func init(){
-//     {{range . -}}
-//     {{$.VarName}}.AddCommand({{.VarName}})
-//     {{end -}}
-// }
-// {{end}}
