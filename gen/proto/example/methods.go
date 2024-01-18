@@ -116,10 +116,17 @@ import (
 // }
 
 type argParser[T any] struct {
-	primitiveParser[T]
+	*primitiveParser[T]
 	customParser func(field *T, arg string) error
 
 	changed bool
+}
+
+func newArgParser[T any](set *pflag.FlagSet, name string, opts ...primitiveParserOpt[T]) *argParser[T] {
+	parser := new(argParser[T])
+	parser.primitiveParser = newPrimitiveParser[T](set, name, opts...)
+
+	return parser
 }
 
 func (parser *argParser[T]) Changed() bool {
@@ -201,14 +208,14 @@ func (v *argParser[T]) Type() string {
 }
 
 func NewStructFlag(set *pflag.FlagSet, name, usage string) *argParser[structpb.Struct] {
-	parser := new(argParser[structpb.Struct])
+	parser := newArgParser[structpb.Struct](set, name)
 	parser.Value = new(structpb.Struct)
 	set.Var(parser, name, usage)
 	return parser
 }
 
 func NewStructSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]*structpb.Struct]) *argParser[[]*structpb.Struct] {
-	parser := new(argParser[[]*structpb.Struct])
+	parser := newArgParser[[]*structpb.Struct](set, name)
 	parser.applyOpts(opts)
 	parser.Value = new([]*structpb.Struct)
 	set.Var(parser, name, usage)
@@ -216,7 +223,7 @@ func NewStructSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiv
 }
 
 func NewAnyFlag(set *pflag.FlagSet, name, usage string) *argParser[anypb.Any] {
-	parser := new(argParser[anypb.Any])
+	parser := newArgParser[anypb.Any](set, name)
 	// TODO: change to message
 	parser.Value = new(anypb.Any)
 	set.Var(parser, name, usage)
@@ -224,7 +231,7 @@ func NewAnyFlag(set *pflag.FlagSet, name, usage string) *argParser[anypb.Any] {
 }
 
 func NewTimestampFlag(set *pflag.FlagSet, name, usage string) *argParser[timestamppb.Timestamp] {
-	parser := new(argParser[timestamppb.Timestamp])
+	parser := newArgParser[timestamppb.Timestamp](set, name)
 	parser.Value = new(timestamppb.Timestamp)
 	parser.customParser = timestampParser
 	set.Var(parser, name, usage)
@@ -232,7 +239,7 @@ func NewTimestampFlag(set *pflag.FlagSet, name, usage string) *argParser[timesta
 }
 
 func NewTimestampSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]*timestamppb.Timestamp]) *argParser[[]*timestamppb.Timestamp] {
-	parser := new(argParser[[]*timestamppb.Timestamp])
+	parser := newArgParser[[]*timestamppb.Timestamp](set, name)
 	parser.applyOpts(opts)
 	parser.Value = new([]*timestamppb.Timestamp)
 	parser.customParser = slicePtrParser[timestamppb.Timestamp](timestampParser)
@@ -250,7 +257,7 @@ func timestampParser(field *timestamppb.Timestamp, arg string) error {
 }
 
 func NewDurationFlag(set *pflag.FlagSet, name, usage string) *argParser[durationpb.Duration] {
-	parser := new(argParser[durationpb.Duration])
+	parser := newArgParser[durationpb.Duration](set, name)
 	parser.Value = new(durationpb.Duration)
 	parser.customParser = durationParser
 	set.Var(parser, name, usage)
@@ -258,7 +265,7 @@ func NewDurationFlag(set *pflag.FlagSet, name, usage string) *argParser[duration
 }
 
 func NewDurationSliceFlag(set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]*durationpb.Duration]) *argParser[[]*durationpb.Duration] {
-	parser := new(argParser[[]*durationpb.Duration])
+	parser := newArgParser[[]*durationpb.Duration](set, name)
 	parser.applyOpts(opts)
 	parser.Value = new([]*durationpb.Duration)
 	parser.customParser = slicePtrParser[durationpb.Duration](durationParser)
@@ -281,19 +288,21 @@ type enum interface {
 	String() string
 }
 
-func NewEnumFlag[E enum](set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[E]) (parser argParser[E]) {
+func NewEnumFlag[E enum](set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[E]) *argParser[E] {
+	parser := newArgParser[E](set, name)
 	parser.applyOpts(opts)
 	parser.Value = new(E)
 	parser.customParser = enumParser[E]
-	set.Var(&parser, name, usage)
+	set.Var(parser, name, usage)
 	return parser
 }
 
-func NewEnumSliceFlag[E enum](set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]E]) (parser argParser[[]E]) {
+func NewEnumSliceFlag[E enum](set *pflag.FlagSet, name, usage string, opts ...primitiveParserOpt[[]E]) *argParser[[]E] {
+	parser := newArgParser[[]E](set, name)
 	parser.applyOpts(opts)
 	parser.Value = new([]E)
 	parser.customParser = sliceParser(enumParser[E])
-	set.Var(&parser, name, usage)
+	set.Var(parser, name, usage)
 	return parser
 }
 

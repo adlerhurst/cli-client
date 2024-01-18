@@ -1,5 +1,5 @@
 var (
-	_{{.VarName}}Request = new({{.Request}})
+	_{{.VarName}}Request = &{{.Request}}Flag{ {{.Request}}: new({{.Request}})}
     {{.VarName}} = &cobra.Command{
 		Use:                "{{.Use}}",
 		Short:              `{{.Short}}`,

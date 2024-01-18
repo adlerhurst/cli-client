@@ -49,15 +49,6 @@ func (flag *Flag) IsPrimitive() bool {
 	return flag.Message == nil
 }
 
-// switch fieldIndexes(args, "ooText", "ooWat", "ooNested").last().flag {
-// case "ooText":
-// 	x.Oo = &CallRequest_OoText{OoText: *ooTextFlag.Value}
-// case "ooWat":
-// 	x.Oo = &CallRequest_OoWat{OoWat: *ooWatFlag.Value}
-// case "ooNested":
-// 	x.Oo = &CallRequest_OoNested{OoNested: ooNested}
-// }
-
 func (flag *Flag) FieldName() string {
 	return flag.GoName
 }

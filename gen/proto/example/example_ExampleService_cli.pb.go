@@ -22,7 +22,7 @@ var (
 )
 
 var (
-	_ExampleMyCallCmdRequest = new(CallRequest)
+	_ExampleMyCallCmdRequest = &CallRequestFlag{CallRequest: new(CallRequest)}
 	ExampleMyCallCmd         = &cobra.Command{
 		Use: "mycall",
 		Short: ` I do absolutely nothing
@@ -49,7 +49,7 @@ func runExampleMyCallCmd(cmd *cobra.Command, args []string) {
 }
 
 var (
-	_ExampleMyNestedCallCmdRequest = new(NestedRequest)
+	_ExampleMyNestedCallCmdRequest = &NestedRequestFlag{NestedRequest: new(NestedRequest)}
 	ExampleMyNestedCallCmd         = &cobra.Command{
 		Use:                "mynestedcall",
 		Short:              ``,
