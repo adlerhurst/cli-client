@@ -21,21 +21,27 @@ type {{$value.Message.GoIdent.GoName}}Flag struct{
 
 func(x *{{$value.Message.GoIdent.GoName}}Flag) AddFlags(parent *pflag.FlagSet) {
     x.set = pflag.NewFlagSet("{{$value.Message.GoIdent.GoName}}", pflag.ContinueOnError)
-    parent.AddFlagSet(x.set)
 
     {{range $value.Flags -}}
         {{if not .Message -}}
     {{.FlagConstructor}}
         {{else -}}
-            {{if not .IsList -}}
-    x.{{.VarName}} = &{{.Message.Type}}Flag{ {{.Message.Type}}: new({{.Message.Type}}) }
-    x.{{.VarName}}.AddFlags(x.set)
-            {{else -}}
+            {{if .IsList -}}
     x.{{.VarName}} = []*{{.Message.Type}}Flag{}
             {{end -}}
         {{end -}}
     {{end -}}
 
+    {{range $value.Flags -}}
+        {{if .Message -}}
+            {{if not .IsList -}}
+    x.{{.VarName}} = &{{.Message.Type}}Flag{ {{.Message.Type}}: new({{.Message.Type}}) }
+    x.{{.VarName}}.AddFlags(x.set)
+            {{end -}}
+        {{end -}}
+    {{end -}}
+
+    parent.AddFlagSet(x.set)
 }
 
 func(x *{{$value.Message.GoIdent.GoName}}Flag) ParseFlags(parent *pflag.FlagSet, args []string) {
@@ -60,9 +66,10 @@ func(x *{{$value.Message.GoIdent.GoName}}Flag) ParseFlags(parent *pflag.FlagSet,
         {{if .Message -}}
             {{if not .OneOf -}}
                 {{if .IsList -}}
-    for i, flagIdx := range flagIndexes.byName("{{.FieldNamePrivate}}") {
-    	x.{{.VarName}}[i] = new({{.Message.Type}}Flag)
-    	x.{{.VarName}}[i].ParseFlags(x.set, flagIdx.args)
+    for _, flagIdx := range flagIndexes.byName("{{.FieldNamePrivate}}") {
+        x.{{.VarName}} = append(x.{{.VarName}}, &{{.Message.Type}}Flag{ {{.Message.Type}}: new({{.Message.Type}}) })
+    	x.{{.VarName}}[len(x.{{.VarName}})-1].AddFlags(x.set)
+    	x.{{.VarName}}[len(x.{{.VarName}})-1].ParseFlags(x.set, flagIdx.args)
     }
                 {{end -}}
             {{end -}}

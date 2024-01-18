@@ -45,12 +45,9 @@ type CallRequestFlag struct {
 
 func (x *CallRequestFlag) AddFlags(parent *pflag.FlagSet) {
 	x.set = pflag.NewFlagSet("CallRequest", pflag.ContinueOnError)
-	parent.AddFlagSet(x.set)
 
 	x.useFieldNameFlag = NewStringFlag(x.set, "useFieldName", "")
 	x.useCustomNameFlag = NewStringFlag(x.set, "useCustomName", "")
-	x.nestedFlag = &CallRequest_NestedFlag{CallRequest_Nested: new(CallRequest_Nested)}
-	x.nestedFlag.AddFlags(x.set)
 	x.repNestFlag = []*CallRequest_NestedFlag{}
 	x.createdAtFlag = NewTimestampFlag(x.set, "createdAt", "")
 	x.payloadFlag = NewStructFlag(x.set, "payload", "")
@@ -75,8 +72,11 @@ func (x *CallRequestFlag) AddFlags(parent *pflag.FlagSet) {
 	x.somethingFlag = NewAnyFlag(x.set, "something", "")
 	x.ooTextFlag = NewStringFlag(x.set, "ooText", "")
 	x.ooWatFlag = NewEnumFlag[CallRequest_Wat](x.set, "ooWat", "")
+	x.nestedFlag = &CallRequest_NestedFlag{CallRequest_Nested: new(CallRequest_Nested)}
+	x.nestedFlag.AddFlags(x.set)
 	x.ooNestedFlag = &CallRequest_NestedFlag{CallRequest_Nested: new(CallRequest_Nested)}
 	x.ooNestedFlag.AddFlags(x.set)
+	parent.AddFlagSet(x.set)
 }
 
 func (x *CallRequestFlag) ParseFlags(parent *pflag.FlagSet, args []string) {
@@ -95,9 +95,10 @@ func (x *CallRequestFlag) ParseFlags(parent *pflag.FlagSet, args []string) {
 		x.ooNestedFlag.ParseFlags(x.set, flagIdx.args)
 	}
 
-	for i, flagIdx := range flagIndexes.byName("repNest") {
-		x.repNestFlag[i] = new(CallRequest_NestedFlag)
-		x.repNestFlag[i].ParseFlags(x.set, flagIdx.args)
+	for _, flagIdx := range flagIndexes.byName("repNest") {
+		x.repNestFlag = append(x.repNestFlag, &CallRequest_NestedFlag{CallRequest_Nested: new(CallRequest_Nested)})
+		x.repNestFlag[len(x.repNestFlag)-1].AddFlags(x.set)
+		x.repNestFlag[len(x.repNestFlag)-1].ParseFlags(x.set, flagIdx.args)
 	}
 
 	if x.useFieldNameFlag.Changed() {
@@ -241,9 +242,9 @@ type CallRequest_NestedFlag struct {
 
 func (x *CallRequest_NestedFlag) AddFlags(parent *pflag.FlagSet) {
 	x.set = pflag.NewFlagSet("CallRequest_Nested", pflag.ContinueOnError)
-	parent.AddFlagSet(x.set)
 
 	x.fieldFlag = NewStringFlag(x.set, "field", "")
+	parent.AddFlagSet(x.set)
 }
 
 func (x *CallRequest_NestedFlag) ParseFlags(parent *pflag.FlagSet, args []string) {
@@ -276,11 +277,11 @@ type NestedRequestFlag struct {
 
 func (x *NestedRequestFlag) AddFlags(parent *pflag.FlagSet) {
 	x.set = pflag.NewFlagSet("NestedRequest", pflag.ContinueOnError)
-	parent.AddFlagSet(x.set)
 
+	x.idFlag = NewStringFlag(x.set, "id", "")
 	x.nestedFlag = &NestedRequest_NestedFlag{NestedRequest_Nested: new(NestedRequest_Nested)}
 	x.nestedFlag.AddFlags(x.set)
-	x.idFlag = NewStringFlag(x.set, "id", "")
+	parent.AddFlagSet(x.set)
 }
 
 func (x *NestedRequestFlag) ParseFlags(parent *pflag.FlagSet, args []string) {
@@ -322,10 +323,10 @@ type NestedRequest_NestedFlag struct {
 
 func (x *NestedRequest_NestedFlag) AddFlags(parent *pflag.FlagSet) {
 	x.set = pflag.NewFlagSet("NestedRequest_Nested", pflag.ContinueOnError)
-	parent.AddFlagSet(x.set)
 
 	x.idFlag = NewStringFlag(x.set, "id", "")
 	x.depthFlag = NewInt32Flag(x.set, "depth", "")
+	parent.AddFlagSet(x.set)
 }
 
 func (x *NestedRequest_NestedFlag) ParseFlags(parent *pflag.FlagSet, args []string) {
