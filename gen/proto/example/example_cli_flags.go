@@ -46,13 +46,13 @@ type CallRequestFlag struct {
 func (x *CallRequestFlag) AddFlags(parent *pflag.FlagSet) {
 	x.set = pflag.NewFlagSet("CallRequest", pflag.ContinueOnError)
 
-	x.useFieldNameFlag = NewStringFlag(x.set, "useFieldName", "")
-	x.useCustomNameFlag = NewStringFlag(x.set, "useCustomName", "")
+	x.useFieldNameFlag = NewStringFlag(x.set, "use-field-name", "")
+	x.useCustomNameFlag = NewStringFlag(x.set, "use-custom-name", "")
 	x.repNestFlag = []*CallRequest_NestedFlag{}
-	x.createdAtFlag = NewTimestampFlag(x.set, "createdAt", "")
+	x.createdAtFlag = NewTimestampFlag(x.set, "created-at", "")
 	x.payloadFlag = NewStructFlag(x.set, "payload", "")
 	x.watFlag = NewEnumFlag[CallRequest_Wat](x.set, "wat", "")
-	x.isSomethingFlag = NewBoolFlag(x.set, "isSomething", "")
+	x.isSomethingFlag = NewBoolFlag(x.set, "is-something", "")
 	x.i32Flag = NewInt32Flag(x.set, "i32", "")
 	x.ui32Flag = NewUint32Flag(x.set, "ui32", "")
 	x.i64Flag = NewInt64Flag(x.set, "i64", "")
@@ -67,11 +67,11 @@ func (x *CallRequestFlag) AddFlags(parent *pflag.FlagSet) {
 	x.sf32Flag = NewSfixed32Flag(x.set, "sf32", "")
 	x.sf64Flag = NewSfixed64Flag(x.set, "sf64", "")
 	x.someFlag = NewEnumFlag[Some](x.set, "some", "")
-	x.repSFlag = NewDoubleSliceFlag(x.set, "repS", "")
-	x.repWatFlag = NewEnumSliceFlag[CallRequest_Wat](x.set, "repWat", "")
+	x.repSFlag = NewDoubleSliceFlag(x.set, "rep-s", "")
+	x.repWatFlag = NewEnumSliceFlag[CallRequest_Wat](x.set, "rep-wat", "")
 	x.somethingFlag = NewAnyFlag(x.set, "something", "")
-	x.ooTextFlag = NewStringFlag(x.set, "ooText", "")
-	x.ooWatFlag = NewEnumFlag[CallRequest_Wat](x.set, "ooWat", "")
+	x.ooTextFlag = NewStringFlag(x.set, "oo-text", "")
+	x.ooWatFlag = NewEnumFlag[CallRequest_Wat](x.set, "oo-wat", "")
 	x.nestedFlag = &CallRequest_NestedFlag{CallRequest_Nested: new(CallRequest_Nested)}
 	x.nestedFlag.AddFlags(x.set)
 	x.ooNestedFlag = &CallRequest_NestedFlag{CallRequest_Nested: new(CallRequest_Nested)}
@@ -80,7 +80,7 @@ func (x *CallRequestFlag) AddFlags(parent *pflag.FlagSet) {
 }
 
 func (x *CallRequestFlag) ParseFlags(parent *pflag.FlagSet, args []string) {
-	flagIndexes := fieldIndexes(args, "nested", "repNest", "ooNested")
+	flagIndexes := fieldIndexes(args, "nested", "rep-nest", "oo-nested")
 
 	if err := x.set.Parse(flagIndexes.primitives().args); err != nil {
 		DefaultConfig.Logger.Error("failed to parse flags", "cause", err)
@@ -91,11 +91,11 @@ func (x *CallRequestFlag) ParseFlags(parent *pflag.FlagSet, args []string) {
 		x.nestedFlag.ParseFlags(x.set, flagIdx.args)
 	}
 
-	if flagIdx := flagIndexes.lastByName("ooNested"); flagIdx != nil {
+	if flagIdx := flagIndexes.lastByName("oo-nested"); flagIdx != nil {
 		x.ooNestedFlag.ParseFlags(x.set, flagIdx.args)
 	}
 
-	for _, flagIdx := range flagIndexes.byName("repNest") {
+	for _, flagIdx := range flagIndexes.byName("rep-nest") {
 		x.repNestFlag = append(x.repNestFlag, &CallRequest_NestedFlag{CallRequest_Nested: new(CallRequest_Nested)})
 		x.repNestFlag[len(x.repNestFlag)-1].AddFlags(x.set)
 		x.repNestFlag[len(x.repNestFlag)-1].ParseFlags(x.set, flagIdx.args)
@@ -208,18 +208,18 @@ func (x *CallRequestFlag) ParseFlags(parent *pflag.FlagSet, args []string) {
 		x.Something = x.somethingFlag.Value
 	}
 
-	switch fieldIndexes(args, "ooText", "ooWat", "ooNested").last().flag {
-	case "ooText":
+	switch fieldIndexes(args, "oo-text", "oo-wat", "oo-nested").last().flag {
+	case "oo-text":
 		if x.ooTextFlag.Changed() {
 			x.changed = true
 			x.Oo = &CallRequest_OoText{OoText: *x.ooTextFlag.Value}
 		}
-	case "ooWat":
+	case "oo-wat":
 		if x.ooWatFlag.Changed() {
 			x.changed = true
 			x.Oo = &CallRequest_OoWat{OoWat: *x.ooWatFlag.Value}
 		}
-	case "ooNested":
+	case "oo-nested":
 		if x.ooNestedFlag.Changed() {
 			x.changed = true
 			x.Oo = &CallRequest_OoNested{OoNested: x.ooNestedFlag.CallRequest_Nested}
@@ -241,7 +241,7 @@ type CallRequest_NestedFlag struct {
 }
 
 func (x *CallRequest_NestedFlag) AddFlags(parent *pflag.FlagSet) {
-	x.set = pflag.NewFlagSet("CallRequest_Nested", pflag.ContinueOnError)
+	x.set = pflag.NewFlagSet("nested", pflag.ContinueOnError)
 
 	x.fieldFlag = NewStringFlag(x.set, "field", "")
 	parent.AddFlagSet(x.set)

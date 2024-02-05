@@ -28,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ExampleServiceClient interface {
 	// I do absolutely nothing
+	// because i'm a showcase
 	Call(ctx context.Context, in *CallRequest, opts ...grpc.CallOption) (*CallResponse, error)
 	Nested(ctx context.Context, in *NestedRequest, opts ...grpc.CallOption) (*NestedResponse, error)
 }
@@ -63,6 +64,7 @@ func (c *exampleServiceClient) Nested(ctx context.Context, in *NestedRequest, op
 // for forward compatibility
 type ExampleServiceServer interface {
 	// I do absolutely nothing
+	// because i'm a showcase
 	Call(context.Context, *CallRequest) (*CallResponse, error)
 	Nested(context.Context, *NestedRequest) (*NestedResponse, error)
 	mustEmbedUnimplementedExampleServiceServer()

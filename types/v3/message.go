@@ -30,7 +30,7 @@ func (msg *Message) NestedFlagNames() string {
 		if flag.Message == nil {
 			continue
 		}
-		flagNames = append(flagNames, `"`+flag.FieldNamePrivate()+`"`)
+		flagNames = append(flagNames, `"`+flag.Name()+`"`)
 	}
 
 	return strings.Join(flagNames, ", ")

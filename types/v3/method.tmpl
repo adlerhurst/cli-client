@@ -14,6 +14,11 @@ func init() {
 	{{.Parent.VarName}}.AddCommand({{.VarName}})
 	_{{.VarName}}Request.AddFlags({{.VarName}}.Flags())
 	{{.VarName}}.PreRun = func(cmd *cobra.Command, args []string) {
+		{{.VarName}}.Flags().Parse(args)
+		if {{.VarName}}.Flag("help").Changed {
+			{{.VarName}}.Help()
+			os.Exit(0)
+		}
 		_{{.VarName}}Request.ParseFlags(cmd.Flags(), args)
 	}
 }

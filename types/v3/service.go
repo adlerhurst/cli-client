@@ -62,11 +62,12 @@ func (svc *Service) Public() string {
 }
 
 func (svc *Service) Short() string {
-	return string(svc.Comments.Leading)
+	short, _, _ := strings.Cut(string(svc.Comments.Leading), "\n")
+	return removeWhitespaces(short)
 }
 
 func (svc *Service) Long() string {
-	return string(svc.Comments.Leading) + string(svc.Comments.Trailing)
+	return removeWhitespaces(string(svc.Comments.Leading))
 }
 
 func (svc *Service) VarName() string {

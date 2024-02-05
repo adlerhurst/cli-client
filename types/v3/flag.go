@@ -58,7 +58,7 @@ func (flag *Flag) FlagConstructor() string {
 		builder.WriteString("]")
 	}
 	builder.WriteString(`(x.set, "`)
-	builder.WriteString(flag.FieldNamePrivate())
+	builder.WriteString(flag.Name())
 	builder.WriteString(`", "")`)
 
 	return builder.String()
@@ -68,20 +68,16 @@ func (flag *Flag) IsList() bool {
 	return flag.Desc.IsList()
 }
 
-func (flag *Flag) isPrimitive() bool {
-	return flag.Message == nil && flag.Enum == nil && flag.Oneof == nil
-}
-
 func (flag *Flag) FieldName() string {
-	return flag.GoName
-}
-
-func (flag *Flag) Name() string {
 	return flag.GoName
 }
 
 func (flag *Flag) FieldNamePrivate() string {
 	return flag.Desc.JSONName()
+}
+
+func (flag *Flag) Name() string {
+	return strings.ReplaceAll(string(flag.Desc.Name()), "_", "-")
 }
 
 func (flag *Flag) Type() string {
@@ -134,7 +130,7 @@ func (flag *oneOfFlag) FieldName() string {
 func (flag *oneOfFlag) FieldNames() string {
 	fields := make([]string, len(flag.Fields))
 	for i, field := range flag.Fields {
-		fields[i] = `"` + field.Desc.JSONName() + `"`
+		fields[i] = `"` + strings.ReplaceAll(string(field.Desc.Name()), "_", "-") + `"`
 	}
 	return strings.Join(fields, ", ")
 }

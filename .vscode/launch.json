@@ -11,17 +11,17 @@
             "mode": "auto",
             "program": "${workspaceFolder}/gen/main.go",
             "args": [
-                // "--help"
-                "mycall", "--help"
-                //  "mycall", "--id", "asdf"
-                // "mycall", "--payload", "{\"test\": 123, \"asdf\": \"test\"}", "--createdAt", "2024-01-01T20:38:24Z"
-                // "mycall", "--id", "123", "--nested", "--field", "asdf", "--nested", "--field", "hgdf"
+                "--help"
+                // "my-call", "-h"
+                // "my-call", "--id", "asdf"
+                // "my-call", "--payload", "{\"test\": 123, \"asdf\": \"test\"}", "--createdAt", "2024-01-01T20:38:24Z"
+                // "my-call", "--id", "123", "--nested", "--field", "asdf", "--nested", "--field", "hgdf"
                 // "--something", "{\"@type\": \"hodor\", \"value\": \"eyJ0ZXN0IjogMTIzLCAiYXNkZiI6ICJ0ZXN0In0K\"}", 
-                // "mycall", "--nested", "--field", "bla", "--repNest", "--field", "asdf", "--repNest", "--field", "hgdf", "--nested", "--field", "blub"
-                // "mycall", "--repWat", "1,WAT_WEISS", "--wat", "2", "--ooText", "bla", "--ooWat", "WAT_WEISS", "--ooNested", "--field", "asdf"
-                //  "mycall", "--rep_wat", "1,WAT_WEISS", "--rep_wat", "0,WAT_WEISS", "--rep_s", "0,1,2,3", "--wat", "WAT_WEISS", "--ui32", "123",// "--path", "${workspaceFolder}/.vscode/call_request.json"
-                // "mycall", "--wat", "2", "--ui32", "123", "--path", "${workspaceFolder}/.vscode/call_request.json"
-                // "mycall", "--path", "${workspaceFolder}/.vscode/call_request.asdf"
+                //  "my-call", "--nested", "--field", "bla", "--repNest", "--field", "asdf", "--repNest", "--field", "hgdf", "--nested", "--field", "blub"
+                // "my-call", "--repWat", "1,WAT_WEISS", "--wat", "2", "--ooText", "bla", "--ooWat", "WAT_WEISS", "--ooNested", "--field", "asdf"
+                // "my-call", "--rep_wat", "1,WAT_WEISS", "--rep_wat", "0,WAT_WEISS", "--rep_s", "0,1,2,3", "--wat", "WAT_WEISS", "--ui32", "123",// "--path", "${workspaceFolder}/.vscode/call_request.json"
+                // "my-call", "--wat", "2", "--ui32", "123", "--path", "${workspaceFolder}/.vscode/call_request.json"
+                // "my-call", "--path", "${workspaceFolder}/.vscode/call_request.asdf"
             ]
         },
         {

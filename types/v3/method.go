@@ -2,6 +2,8 @@ package types
 
 import (
 	_ "embed"
+	"regexp"
+	"strings"
 	"text/template"
 
 	option "github.com/adlerhurst/protoc-gen-go-cli/gen/proto/adlerhurst/cli/v1alpha"
@@ -41,26 +43,31 @@ func (method *Method) Generate(plugin *protogen.Plugin, gen *protogen.GeneratedF
 func (method *Method) imports(gen *protogen.GeneratedFile) {
 	gen.QualifiedGoIdent(protogen.GoImportPath("github.com/spf13/cobra").Ident("cobra"))
 	gen.QualifiedGoIdent(protogen.GoImportPath("github.com/spf13/pflag").Ident("pflag"))
+	gen.QualifiedGoIdent(protogen.GoImportPath("os").Ident("os"))
 }
 
 func (method *Method) Use() string {
-	return lower.String(method.name())
-}
-
-func (method *Method) Public() string {
-	return method.Parent.Public() + title.String(method.name())
+	re := regexp.MustCompile(`[A-Z]`)
+	return re.ReplaceAllStringFunc(method.name(), func(s string) string {
+		return "-" + strings.ToLower(s[:])
+	})
 }
 
 func (method *Method) Short() string {
-	return string(method.Comments.Leading)
+	short, _, _ := strings.Cut(string(method.Comments.Leading), "\n")
+	return removeWhitespaces(short)
 }
 
 func (method *Method) Long() string {
-	return string(method.Comments.Leading) + string(method.Comments.Trailing)
+	return removeWhitespaces(string(method.Comments.Leading) + string(method.Comments.Trailing))
 }
 
 func (method *Method) VarName() string {
-	return method.Public() + "Cmd"
+	return method.public() + "Cmd"
+}
+
+func (method *Method) public() string {
+	return method.Parent.Public() + title.String(method.name())
 }
 
 func (method *Method) name() string {

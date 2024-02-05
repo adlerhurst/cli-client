@@ -10,15 +10,17 @@ package example;
 option go_package = "gen/example";
 option (cli.v1alpha.cli_name) = "example-cli";
 
-// This is an example service
-// The service does nothing
+//This is an example service
+//The service does nothing
 service ExampleService {
     option (cli.v1alpha.command_name) = "example";
 
-    // I do absolutely nothing
+    //I do absolutely nothing
+    //because i'm a showcase
     rpc Call(CallRequest) returns (CallResponse) {
         option (cli.v1alpha.call_name) = "myCall";
     };
+
     rpc Nested(NestedRequest) returns (NestedResponse) {
         option (cli.v1alpha.call_name) = "myNestedCall";
     };

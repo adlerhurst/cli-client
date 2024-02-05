@@ -5,17 +5,15 @@ package example
 import (
 	cobra "github.com/spf13/cobra"
 	pflag "github.com/spf13/pflag"
+	os "os"
 )
 
 var (
 	ExampleCmd = &cobra.Command{
-		Use: "example",
-		Short: ` This is an example service
- The service does nothing
-`,
-		Long: ` This is an example service
- The service does nothing
-`,
+		Use:   "example",
+		Short: `This is an example service`,
+		Long: `This is an example service
+The service does nothing`,
 		FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true},
 		DisableFlagParsing: true,
 	}
@@ -24,11 +22,10 @@ var (
 var (
 	_ExampleMyCallCmdRequest = &CallRequestFlag{CallRequest: new(CallRequest)}
 	ExampleMyCallCmd         = &cobra.Command{
-		Use: "mycall",
-		Short: ` I do absolutely nothing
-`,
-		Long: ` I do absolutely nothing
-`,
+		Use:   "my-call",
+		Short: `I do absolutely nothing`,
+		Long: `I do absolutely nothing
+because i'm a showcase`,
 		Run:                runExampleMyCallCmd,
 		FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true},
 		DisableFlagParsing: true,
@@ -39,6 +36,12 @@ func init() {
 	ExampleCmd.AddCommand(ExampleMyCallCmd)
 	_ExampleMyCallCmdRequest.AddFlags(ExampleMyCallCmd.Flags())
 	ExampleMyCallCmd.PreRun = func(cmd *cobra.Command, args []string) {
+		ExampleMyCallCmd.Flags().Parse(args)
+		ExampleMyCallCmd.HelpFunc()
+		if ExampleMyCallCmd.Flag("help").Changed {
+			ExampleMyCallCmd.Help()
+			os.Exit(0)
+		}
 		_ExampleMyCallCmdRequest.ParseFlags(cmd.Flags(), args)
 	}
 }
@@ -55,7 +58,7 @@ func runExampleMyCallCmd(cmd *cobra.Command, args []string) {
 var (
 	_ExampleMyNestedCallCmdRequest = &NestedRequestFlag{NestedRequest: new(NestedRequest)}
 	ExampleMyNestedCallCmd         = &cobra.Command{
-		Use:                "mynestedcall",
+		Use:                "my-nested-call",
 		Short:              ``,
 		Long:               ``,
 		Run:                runExampleMyNestedCallCmd,
@@ -68,6 +71,11 @@ func init() {
 	ExampleCmd.AddCommand(ExampleMyNestedCallCmd)
 	_ExampleMyNestedCallCmdRequest.AddFlags(ExampleMyNestedCallCmd.Flags())
 	ExampleMyNestedCallCmd.PreRun = func(cmd *cobra.Command, args []string) {
+		ExampleMyNestedCallCmd.Flags().Parse(args)
+		if ExampleMyNestedCallCmd.Flag("help").Changed {
+			ExampleMyNestedCallCmd.Help()
+			os.Exit(0)
+		}
 		_ExampleMyNestedCallCmdRequest.ParseFlags(cmd.Flags(), args)
 	}
 }
