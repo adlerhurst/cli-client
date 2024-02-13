@@ -5,41 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Package",
+            "name": "example",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/gen/main.go",
+            "program": "${workspaceFolder}/example/main.go",
             "args": [
-                "--help"
+                // "--help"
                 // "my-call", "-h"
-                // "my-call", "--id", "asdf"
-                // "my-call", "--payload", "{\"test\": 123, \"asdf\": \"test\"}", "--createdAt", "2024-01-01T20:38:24Z"
-                // "my-call", "--id", "123", "--nested", "--field", "asdf", "--nested", "--field", "hgdf"
-                // "--something", "{\"@type\": \"hodor\", \"value\": \"eyJ0ZXN0IjogMTIzLCAiYXNkZiI6ICJ0ZXN0In0K\"}", 
-                //  "my-call", "--nested", "--field", "bla", "--repNest", "--field", "asdf", "--repNest", "--field", "hgdf", "--nested", "--field", "blub"
-                // "my-call", "--repWat", "1,WAT_WEISS", "--wat", "2", "--ooText", "bla", "--ooWat", "WAT_WEISS", "--ooNested", "--field", "asdf"
-                // "my-call", "--rep_wat", "1,WAT_WEISS", "--rep_wat", "0,WAT_WEISS", "--rep_s", "0,1,2,3", "--wat", "WAT_WEISS", "--ui32", "123",// "--path", "${workspaceFolder}/.vscode/call_request.json"
+                // "my-call", "--payload", "{\"test\": 123, \"asdf\": \"test\"}", "--created-at", "2024-01-01T20:38:24Z"
+                // "my-call", "--nested", "--field", "asdf", "--nested", "--field", "hgdf"
+                "my-call", "--nested", "--field", "bla", "--rep-nest", "--field", "asdf", "--rep-nest", "--field", "hgdf", "--nested", "--field", "blub"
+                // "my-call", "--rep-wat", "1,WAT_WEISS", "--wat", "2", "--oo-text", "bla", "--oo-wat", "WAT_WEISS", "--oo-nested", "--field", "asdf"
+                // "my-call", "--rep-wat", "1,WAT_WEISS", "--rep-wat", "0,WAT_WEISS", "--rep-s", "0,1,2,3", "--wat", "WAT_WEISS", "--ui32", "123",// "--path", "${workspaceFolder}/.vscode/call_request.json"
                 // "my-call", "--wat", "2", "--ui32", "123", "--path", "${workspaceFolder}/.vscode/call_request.json"
                 // "my-call", "--path", "${workspaceFolder}/.vscode/call_request.asdf"
             ]
-        },
-        {
-            "name": "v3",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/types/v3/main.go",
-            "args": [
-                //"mycall", "--help"
-                 //"mycall", "--nested", "--a", "b", "c"
-                 "--options.values.adler", "asdf"
-                // "mycall", "--wat", "2", "--ui32", "123", "--path", "${workspaceFolder}/.vscode/call_request.json"
-                // "mycall", "--path", "${workspaceFolder}/.vscode/call_request.asdf"
-            ],
-            "env": {
-                "CONFIG_OPTIONS_VALUES": "{\"options\": {\"root\": \".\", \"cmd\": \"exec\", \"logging\": \"on\"}}"
-            }
         }
     ]
 }

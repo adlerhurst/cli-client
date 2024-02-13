@@ -1,0 +1,9 @@
+var (
+    {{.VarName}} = &{{ ident "github.com/spf13/cobra" "Command" | qualify }}{
+		Use:                "{{.Use}}",
+		Short:              `{{.Short}}`,
+		Long:               `{{.Long}}`,
+		FParseErrWhitelist: {{ ident "github.com/spf13/cobra" "FParseErrWhitelist" | qualify }}{UnknownFlags: true},
+        DisableFlagParsing: true,
+	}
+)

@@ -1,0 +1,139 @@
+{{range $value := .}}
+
+type {{$value.Message.GoIdent.GoName}}Flag struct{
+    *{{qualify $value.Message.GoIdent}}
+
+    changed bool
+    set *{{ ident "github.com/spf13/pflag" "FlagSet" | qualify }}
+
+    {{range $value.Flags -}}
+        {{if not .Message -}}
+    {{ .VarName }} *{{ .Ident | qualify }}
+        {{else -}}
+            {{if not .IsList -}}
+    {{.VarName}} *{{.Message.Type}}Flag
+            {{else -}}
+    {{.VarName}} []*{{.Message.Type}}Flag
+            {{end -}}
+        {{end -}}
+    {{end -}}
+}
+
+func(x *{{$value.Message.GoIdent.GoName}}Flag) AddFlags(parent *{{ ident "github.com/spf13/pflag" "FlagSet" | qualify }}) {
+    x.set = {{ ident "github.com/spf13/pflag" "NewFlagSet" | qualify }}("{{$value.Message.GoIdent.GoName}}", {{ ident "github.com/spf13/pflag" "ContinueOnError" | qualify }})
+
+    {{range $value.Flags -}}
+        {{if not .Message -}}
+    x.{{.VarName}} = {{ .ConstructorIdent | qualify }}(x.set, "{{ .Name }}", "")
+        {{else -}}
+            {{if .IsList -}}
+    x.{{.VarName}} = []*{{.Message.Type}}Flag{}
+            {{end -}}
+        {{end -}}
+    {{end -}}
+
+    {{range $value.Flags -}}
+        {{if .Message -}}
+            {{if not .IsList -}}
+    x.{{.VarName}} = &{{.Message.Type}}Flag{ {{.Message.Type}}: new({{.Message.Type}}) }
+    x.{{.VarName}}.AddFlags(x.set)
+            {{end -}}
+        {{end -}}
+    {{end -}}
+
+    parent.AddFlagSet(x.set)
+}
+
+func(x *{{$value.Message.GoIdent.GoName}}Flag) ParseFlags(parent *{{ ident "github.com/spf13/pflag" "FlagSet" | qualify }}, args []string) {
+    flagIndexes := {{ ident "github.com/adlerhurst/cli-client" "FieldIndexes" | qualify }}(args, {{$value.NestedFlagNames}})
+
+    if err := x.set.Parse(flagIndexes.Primitives().Args); err != nil {
+		{{ logger }}.Error("failed to parse flags", "cause", err)
+		{{ ident "os" "Exit" | qualify }}(1)
+	}
+
+    {{range $value.Flags}}
+        {{if .Message -}}
+            {{if not .IsList -}}
+    if flagIdx := flagIndexes.LastByName("{{.Name}}"); flagIdx != nil {
+    	x.{{.VarName}}.ParseFlags(x.set, flagIdx.Args)
+    }
+            {{end -}}
+        {{end -}}
+    {{end -}}
+
+    {{range $value.Flags}}
+        {{if .Message -}}
+            {{if not .OneOf -}}
+                {{if .IsList -}}
+    for _, flagIdx := range flagIndexes.ByName("{{.Name}}") {
+        x.{{.VarName}} = append(x.{{.VarName}}, &{{.Message.Type}}Flag{ {{.Message.Type}}: new({{.Message.Type}}) })
+    	x.{{.VarName}}[len(x.{{.VarName}})-1].AddFlags(x.set)
+    	x.{{.VarName}}[len(x.{{.VarName}})-1].ParseFlags(x.set, flagIdx.Args)
+    }
+                {{end -}}
+            {{end -}}
+        {{end -}}
+    {{end -}}
+
+    {{range $value.Flags -}}
+        {{if not .OneOf -}}
+            {{if not .Message -}}
+    if x.{{.VarName}}.Changed() {
+        x.changed = true
+        x.{{$value.Message.GoIdent.GoName}}.{{.FieldName}} = {{if not .IsPtr}}*{{end}}x.{{.VarName}}.Value
+    }
+            {{else -}}
+                {{if .IsList -}}
+    if len(x.{{.VarName}}) > 0 {
+        x.changed = true
+        x.{{.FieldName}} = make([]*{{.Message.Type}}, len(x.{{.VarName}}))
+        for i, value := range x.{{.VarName}} {
+            x.{{$value.Message.GoIdent.GoName}}.{{.FieldName}}[i] = value.{{.Message.Type}}
+        }
+    }
+                {{else}}
+    if x.{{.VarName}}.Changed() {
+        x.changed = true
+        x.{{$value.Message.GoIdent.GoName}}.{{.FieldName}} = x.{{.VarName}}.{{.Message.Type}}
+    }
+                {{end}}
+            {{end -}}
+        {{end -}}
+    {{end -}}
+
+    {{range $oneOf := $value.OneOfs}}
+    switch {{ ident "github.com/adlerhurst/cli-client" "FieldIndexes" | qualify }}(args, {{$oneOf.FieldNames}}).Last().Flag {
+        {{range .Flags -}}
+        case "{{.Name}}":
+            {{if not .Message -}}
+            if x.{{.VarName}}.Changed() {
+                x.changed = true
+                x.{{$value.Message.GoIdent.GoName}}.{{$oneOf.FieldName}} = &{{.Type}}{ {{.FieldName}}: *x.{{.VarName}}.Value }
+            }
+            {{else -}}
+                {{if .IsList -}}
+    if len(x.{{.VarName}}) > 0 {
+        x.{{.FieldName}} = make([]*{{.Message.Type}}, len(x.{{.VarName}}))
+        for i, value := range x.{{.VarName}} {
+            x.changed = true
+            x.{{$oneOf.FieldName}}[i] = value.{{.Message.Type}}
+        }
+    }
+                {{else -}}
+    if x.{{.VarName}}.Changed() {
+        x.changed = true
+        x.{{$oneOf.FieldName}} = &{{.Type}}{ {{.FieldName}}:  x.{{.VarName}}.{{.Message.Type}} }
+    }
+                {{end -}}
+            {{end -}}
+        {{end -}}
+    }
+    {{end -}}
+}
+
+func(x *{{$value.Message.GoIdent.GoName}}Flag) Changed() bool {
+    return x.changed
+}
+
+{{end}}
