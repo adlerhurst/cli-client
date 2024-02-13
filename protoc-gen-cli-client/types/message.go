@@ -2,6 +2,7 @@ package types
 
 import (
 	_ "embed"
+	"log"
 	"strings"
 
 	"google.golang.org/protobuf/compiler/protogen"
@@ -45,8 +46,14 @@ func (msg *Message) HasMessageFlags() bool {
 }
 
 func SetMessages(service *protogen.Service) {
-	for _, method := range service.Methods {
-		setMessage(method.Input)
+	// for _, method := range service.Methods {
+	// 	setMessage(method.Input)
+	// }
+}
+
+func SetMessagesFromFile(file *protogen.File) {
+	for _, message := range file.Messages {
+		setMessage(message)
 	}
 }
 
@@ -74,6 +81,7 @@ var customFlags = map[protoreflect.FullName]*customFlag{
 }
 
 func setMessage(message *protogen.Message) {
+	log.Println(message.Desc.FullName())
 	if _, ok := messages[message.Desc.FullName()]; ok {
 		return
 	}

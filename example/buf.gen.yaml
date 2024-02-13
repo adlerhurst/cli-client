@@ -2,7 +2,7 @@ version: v1
 # managed:
 #   enabled: true
 #   go_package_prefix:
-#     default: "github.com/adlerhurst/protoc-gen-go-cli/example/cli;cli"
+#     default: "github.com/adlerhurst/protoc-gen-cli-client/example/cli;cli"
 plugins:
   - plugin: go
     out: .artifacts
@@ -10,6 +10,6 @@ plugins:
   - plugin: go-grpc
     out: .artifacts
     opt: paths=source_relative
-  - plugin: go-cli
+  - plugin: cli-client
     out: .artifacts
     opt: paths=source_relative

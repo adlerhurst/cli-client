@@ -1,4 +1,4 @@
-module github.com/adlerhurst/cli-client/protoc-gen-go-cli
+module github.com/adlerhurst/cli-client/protoc-gen-cli-client
 
 go 1.22
 

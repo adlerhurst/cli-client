@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	option "github.com/adlerhurst/cli-client/protoc-gen-go-cli/option"
+	option "github.com/adlerhurst/cli-client/protoc-gen-cli-client/option"
 
 	"google.golang.org/protobuf/compiler/protogen"
 )
@@ -13,14 +13,14 @@ import (
 type Method struct {
 	Parent *Service
 	*protogen.Method
-	Request string
+	Request protogen.GoIdent
 }
 
 func MethodFromProto(parent *Service, method *protogen.Method) *Method {
 	m := &Method{
 		Parent:  parent,
 		Method:  method,
-		Request: method.Input.GoIdent.GoName,
+		Request: method.Input.GoIdent,
 	}
 
 	return m

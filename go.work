@@ -3,5 +3,5 @@ go 1.22.0
 use (
 	.
 	example
-	protoc-gen-go-cli
+	protoc-gen-cli-client
 )

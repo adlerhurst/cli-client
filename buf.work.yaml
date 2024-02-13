@@ -1,4 +1,4 @@
 version: v1
 directories:
   - example
-  - protoc-gen-go-cli
+  - protoc-gen-cli-client

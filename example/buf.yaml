@@ -2,7 +2,7 @@ version: v1
 name: buf.build/adlerhurst/example
 deps:
   - buf.build/googleapis/googleapis
-  - buf.build/adlerhurst/go-cli
+  - buf.build/adlerhurst/cli-client
 breaking:
   use:
     - FILE

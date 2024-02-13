@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	option "github.com/adlerhurst/cli-client/protoc-gen-go-cli/option"
+	option "github.com/adlerhurst/cli-client/protoc-gen-cli-client/option"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 

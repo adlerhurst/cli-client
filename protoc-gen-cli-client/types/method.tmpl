@@ -1,5 +1,5 @@
 var (
-	_{{.VarName}}Request = &{{.Request}}Flag{ {{.Request}}: new({{.Request}})}
+	_{{.VarName}}Request = &{{ .Request.GoName }}Flag{ {{ qualify .Request }}: new({{ qualify .Request }})}
     {{.VarName}} = &{{ ident "github.com/spf13/cobra" "Command" | qualify }}{
 		Use:                "{{.Use}}",
 		Short:              `{{.Short}}`,
@@ -8,6 +8,7 @@ var (
 		FParseErrWhitelist: {{ ident "github.com/spf13/cobra" "FParseErrWhitelist" | qualify }}{UnknownFlags: true},
 		DisableFlagParsing: true,
 	}
+	{{.VarName}}CallOptions []{{ ident "google.golang.org/grpc" "CallOption" | qualify}}
 )
 
 func init() {
@@ -24,10 +25,12 @@ func init() {
 }
 
 func run{{.VarName}}(cmd *{{ ident "github.com/spf13/cobra" "Command" | qualify }}, args []string){
-	cmd.Flags().VisitAll(func(f *{{ ident "github.com/spf13/pflag" "Flag" | qualify }}) {
-		if !f.Changed {
-			return 
-		}
-		{{ logger }}.Info("flag", "name", f.Name, "value", f.Value.String(), "changed", f.Changed)
-	})
+	conn := {{ ident "github.com/adlerhurst/cli-client" "Connection" | qualify }}(cmd.Context())
+	client := New{{ .Parent.Service.GoName }}Client(conn)
+
+	_, err := client.{{ .Method.GoName }}(cmd.Context(), _{{.VarName}}Request.{{.Request.GoName}}, {{.VarName}}CallOptions...)
+	if err != nil {
+		{{ logger }}.Error("unable to {{ .Method.GoName }}", "cause", err)
+		os.Exit(1)
+	}
 }

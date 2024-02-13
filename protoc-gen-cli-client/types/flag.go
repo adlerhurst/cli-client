@@ -31,19 +31,19 @@ func (flag *Flag) Name() string {
 	return strings.ReplaceAll(string(flag.Desc.Name()), "_", "-")
 }
 
-func (flag *Flag) Type() string {
-	return flag.Field.GoIdent.GoName
+func (flag *Flag) Type() protogen.GoIdent {
+	return flag.Field.GoIdent
 }
 
-func (flag *Flag) Ident() protogen.GoIdent {
-	return flag.ident(false)
+func (flag *Flag) Ident(gen *protogen.GeneratedFile) protogen.GoIdent {
+	return flag.ident(gen, false)
 }
 
-func (flag *Flag) ConstructorIdent() protogen.GoIdent {
-	return flag.ident(true)
+func (flag *Flag) ConstructorIdent(gen *protogen.GeneratedFile) protogen.GoIdent {
+	return flag.ident(gen, true)
 }
 
-func (flag *Flag) ident(isConstructor bool) protogen.GoIdent {
+func (flag *Flag) ident(gen *protogen.GeneratedFile, isConstructor bool) protogen.GoIdent {
 	if flag.Custom != nil {
 		name := flag.Custom.Type
 		if isConstructor {
@@ -68,7 +68,7 @@ func (flag *Flag) ident(isConstructor bool) protogen.GoIdent {
 	builder.WriteString("Parser")
 	if flag.Enum != nil {
 		builder.WriteString("[")
-		builder.WriteString(flag.Enum.Type())
+		builder.WriteString(qualifier(gen)(flag.Enum.GoIdent))
 		builder.WriteString("]")
 	}
 	return protogen.GoIdent{

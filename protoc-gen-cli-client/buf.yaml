@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/adlerhurst/go-cli
+name: buf.build/adlerhurst/cli-client
 deps:
   - buf.build/googleapis/googleapis
 breaking:

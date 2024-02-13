@@ -1,14 +1,14 @@
 generate-option:
-	$(RM) -r protoc-gen-go-cli/.artifacts
-	cd protoc-gen-go-cli && buf generate 
-	mkdir -p protoc-gen-go-cli/option
-	mv protoc-gen-go-cli/.artifacts/adlerhurst/cli/v1alpha/* protoc-gen-go-cli/option
-	$(RM) -r protoc-gen-go-cli/.artifacts
+	$(RM) -r protoc-gen-cli-client/.artifacts
+	cd protoc-gen-cli-client && buf generate 
+	mkdir -p protoc-gen-cli-client/option
+	mv protoc-gen-cli-client/.artifacts/adlerhurst/cli/v1alpha/* protoc-gen-cli-client/option
+	$(RM) -r protoc-gen-cli-client/.artifacts
 
 .PHONY: compile
 compile: generate-option
-	cd protoc-gen-go-cli && go mod tidy
-	cd protoc-gen-go-cli && go install
+	cd protoc-gen-cli-client && go mod tidy
+	cd protoc-gen-cli-client && go install
 
 generate-example:
 	$(RM) -r example/proto/*pb.go

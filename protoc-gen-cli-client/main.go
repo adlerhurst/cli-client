@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/adlerhurst/cli-client/protoc-gen-go-cli/types"
+	"github.com/adlerhurst/cli-client/protoc-gen-cli-client/types"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/pluginpb"
@@ -35,6 +35,8 @@ func main() {
 					return err
 				}
 			}
+
+			types.SetMessagesFromFile(file)
 			err := types.GenerateMessages(plugin, file)
 			if err != nil {
 				return err
