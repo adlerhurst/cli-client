@@ -2,6 +2,7 @@ package types
 
 import (
 	_ "embed"
+	"log"
 	"regexp"
 	"strings"
 
@@ -17,6 +18,7 @@ type Method struct {
 }
 
 func MethodFromProto(parent *Service, method *protogen.Method) *Method {
+	log.Println("ueli", method.Desc.IsStreamingClient(), method.Desc.IsStreamingServer())
 	m := &Method{
 		Parent:  parent,
 		Method:  method,
@@ -33,6 +35,22 @@ var (
 
 func (method *Method) Generate(plugin *protogen.Plugin, gen *protogen.GeneratedFile) error {
 	return executeTemplate(gen, "method", methodDefinition, method)
+}
+
+func (method *Method) IsServerSideStream() bool {
+	return method.Desc.IsStreamingServer() && !method.Desc.IsStreamingClient()
+}
+
+func (method *Method) IsClientSideStream() bool {
+	return method.Desc.IsStreamingClient() && !method.Desc.IsStreamingServer()
+}
+
+func (method *Method) IsBidirectionalStream() bool {
+	return method.Desc.IsStreamingClient() && method.Desc.IsStreamingServer()
+}
+
+func (method *Method) IsNoStream() bool {
+	return !method.Desc.IsStreamingClient() && !method.Desc.IsStreamingServer()
 }
 
 func (method *Method) Use() string {

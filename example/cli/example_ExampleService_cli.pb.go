@@ -131,7 +131,14 @@ func runExampleServerSideStreamCmd(cmd *cobra.Command, args []string) {
 		cli_client.Logger().Error("unable to ServerSideStream", "cause", err)
 		os.Exit(1)
 	}
-	cli_client.Logger().Info("🎉 request succeeded", "result", res)
+	defer res.CloseSend()
+	resp, err := res.Recv()
+	if err != nil {
+		cli_client.Logger().Error("receive failed", "cause", err)
+		os.Exit(1)
+	}
+	cli_client.Logger().Info("🎉 request succeeded", "result", resp)
+
 }
 
 var (
@@ -164,9 +171,19 @@ func runExampleClientSideStreamCmd(cmd *cobra.Command, args []string) {
 	conn := cli_client.Connection(cmd.Context())
 	client := NewExampleServiceClient(conn)
 
-	res, err := client.ClientSideStream(cmd.Context(), _ExampleClientSideStreamCmdRequest.ClientSideStreamRequest, ExampleClientSideStreamCmdCallOptions...)
+	stream, err := client.ClientSideStream(cmd.Context(), ExampleClientSideStreamCmdCallOptions...)
 	if err != nil {
 		cli_client.Logger().Error("unable to ClientSideStream", "cause", err)
+		os.Exit(1)
+	}
+	err = stream.Send(_ExampleClientSideStreamCmdRequest.ClientSideStreamRequest)
+	if err != nil {
+		cli_client.Logger().Error("send failed", "cause", err)
+		os.Exit(1)
+	}
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		cli_client.Logger().Error("close and receive failed", "cause", err)
 		os.Exit(1)
 	}
 	cli_client.Logger().Info("🎉 request succeeded", "result", res)
@@ -202,10 +219,25 @@ func runExampleBidirectionalStreamCmd(cmd *cobra.Command, args []string) {
 	conn := cli_client.Connection(cmd.Context())
 	client := NewExampleServiceClient(conn)
 
-	res, err := client.BidirectionalStream(cmd.Context(), _ExampleBidirectionalStreamCmdRequest.BidirectionalStreamRequest, ExampleBidirectionalStreamCmdCallOptions...)
+	stream, err := client.BidirectionalStream(cmd.Context(), ExampleBidirectionalStreamCmdCallOptions...)
 	if err != nil {
 		cli_client.Logger().Error("unable to BidirectionalStream", "cause", err)
 		os.Exit(1)
 	}
+	err = stream.SendMsg(_ExampleBidirectionalStreamCmdRequest.BidirectionalStreamRequest)
+	if err != nil {
+		cli_client.Logger().Error("send failed", "cause", err)
+		os.Exit(1)
+	}
+	res, err := stream.Recv()
+	if err != nil {
+		cli_client.Logger().Error("send failed", "cause", err)
+		os.Exit(1)
+	}
 	cli_client.Logger().Info("🎉 request succeeded", "result", res)
+	err = stream.CloseSend()
+	if err != nil {
+		cli_client.Logger().Error("close and receive failed", "cause", err)
+		os.Exit(1)
+	}
 }

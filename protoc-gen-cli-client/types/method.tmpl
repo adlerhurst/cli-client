@@ -28,10 +28,71 @@ func run{{.VarName}}(cmd *{{ ident "github.com/spf13/cobra" "Command" | qualify 
 	conn := {{ ident "github.com/adlerhurst/cli-client" "Connection" | qualify }}(cmd.Context())
 	client := New{{ .Parent.Service.GoName }}Client(conn)
 
+	{{if .IsNoStream}}
 	res, err := client.{{ .Method.GoName }}(cmd.Context(), _{{.VarName}}Request.{{.Request.GoName}}, {{.VarName}}CallOptions...)
 	if err != nil {
 		{{ logger }}.Error("unable to {{ .Method.GoName }}", "cause", err)
 		os.Exit(1)
 	}
 	{{ logger }}.Info("🎉 request succeeded", "result", res)
+	{{end -}}
+
+	{{if .IsServerSideStream}}
+	res, err := client.{{ .Method.GoName }}(cmd.Context(), _{{.VarName}}Request.{{.Request.GoName}}, {{.VarName}}CallOptions...)
+	if err != nil {
+		{{ logger }}.Error("unable to {{ .Method.GoName }}", "cause", err)
+		os.Exit(1)
+	}
+	defer res.CloseSend()
+	resp, err := res.Recv()
+	if err != nil {
+		{{ logger }}.Error("receive failed", "cause", err)
+		os.Exit(1)
+	}
+	{{ logger }}.Info("🎉 request succeeded", "result", resp)
+
+	{{end -}}
+
+	{{if .IsClientSideStream}}
+	stream, err := client.{{ .Method.GoName }}(cmd.Context(), {{.VarName}}CallOptions...)
+	if err != nil {
+		{{ logger }}.Error("unable to {{ .Method.GoName }}", "cause", err)
+		os.Exit(1)
+	}
+	err = stream.Send(_{{.VarName}}Request.{{.Request.GoName}})
+	if err != nil{
+		{{ logger }}.Error("send failed", "cause", err)
+		os.Exit(1)
+	}
+	res, err := stream.CloseAndRecv()
+	if err != nil{
+		{{ logger }}.Error("close and receive failed", "cause", err)
+		os.Exit(1)
+	}
+	{{ logger }}.Info("🎉 request succeeded", "result", res)
+	{{end -}}
+
+	{{if .IsBidirectionalStream}}
+	stream, err := client.{{ .Method.GoName }}(cmd.Context(), {{.VarName}}CallOptions...)
+	if err != nil {
+		{{ logger }}.Error("unable to {{ .Method.GoName }}", "cause", err)
+		os.Exit(1)
+	}
+	err = stream.SendMsg(_{{.VarName}}Request.{{.Request.GoName}})
+		if err != nil{
+		{{ logger }}.Error("send failed", "cause", err)
+		os.Exit(1)
+	}
+	res, err := stream.Recv()
+	if err != nil{
+		{{ logger }}.Error("send failed", "cause", err)
+		os.Exit(1)
+	}
+	{{ logger }}.Info("🎉 request succeeded", "result", res)
+	err = stream.CloseSend()
+	if err != nil{
+		{{ logger }}.Error("close and receive failed", "cause", err)
+		os.Exit(1)
+	}
+	{{end -}}
 }
