@@ -2,7 +2,6 @@ package types
 
 import (
 	_ "embed"
-	"log"
 	"regexp"
 	"strings"
 
@@ -18,7 +17,6 @@ type Method struct {
 }
 
 func MethodFromProto(parent *Service, method *protogen.Method) *Method {
-	log.Println("ueli", method.Desc.IsStreamingClient(), method.Desc.IsStreamingServer())
 	m := &Method{
 		Parent:  parent,
 		Method:  method,
