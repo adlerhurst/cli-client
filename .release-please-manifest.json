@@ -1,0 +1,14 @@
+{
+    "packages": {
+      ".": {
+        "release-type": "go",
+        "exclude-paths": ["./protoc-gen-cli-client", "example"],
+        "changelog-path": "./CHANGES.md"
+      },
+      "./protoc-gen-cli-client": {
+        "release-type": "go",
+        "exclude-paths": [".", "example"],
+        "changelog-path": "./protoc-gen-cli-client/CHANGES.md"
+      }
+    }
+  }
