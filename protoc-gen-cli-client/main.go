@@ -36,8 +36,8 @@ func main() {
 				}
 			}
 
-			types.SetMessagesFromFile(file)
-			err := types.GenerateMessages(plugin, file)
+			messages := types.MessagesFromFile(file)
+			err := messages.GenerateMessages(plugin, file)
 			if err != nil {
 				return err
 			}

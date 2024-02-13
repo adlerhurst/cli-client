@@ -11,9 +11,9 @@ type {{$value.Message.GoIdent.GoName}}Flag struct{
     {{ .VarName }} *{{ gen | .Ident | qualify }}
         {{else -}}
             {{if not .IsList -}}
-    {{.VarName}} *{{.Message.Type}}Flag
+    {{.VarName}} *{{qualify .Message.Type}}Flag
             {{else -}}
-    {{.VarName}} []*{{.Message.Type}}Flag
+    {{.VarName}} []*{{qualify .Message.Type}}Flag
             {{end -}}
         {{end -}}
     {{end -}}
@@ -27,7 +27,7 @@ func(x *{{$value.Message.GoIdent.GoName}}Flag) AddFlags(parent *{{ ident "github
     x.{{.VarName}} = {{ gen | .ConstructorIdent | qualify }}(x.set, "{{ .Name }}", "")
         {{else -}}
             {{if .IsList -}}
-    x.{{.VarName}} = []*{{.Message.Type}}Flag{}
+    x.{{.VarName}} = []*{{qualify .Message.Type}}Flag{}
             {{end -}}
         {{end -}}
     {{end -}}
@@ -35,7 +35,7 @@ func(x *{{$value.Message.GoIdent.GoName}}Flag) AddFlags(parent *{{ ident "github
     {{range $value.Flags -}}
         {{if .Message -}}
             {{if not .IsList -}}
-    x.{{.VarName}} = &{{.Message.Type}}Flag{ {{.Message.Type}}: new({{qualify .Message.GoIdent}}) }
+    x.{{.VarName}} = &{{qualify .Message.Type}}Flag{ {{.Message.Type.GoName}}: new({{qualify .Message.GoIdent}}) }
     x.{{.VarName}}.AddFlags(x.set)
             {{end -}}
         {{end -}}
@@ -67,7 +67,7 @@ func(x *{{$value.Message.GoIdent.GoName}}Flag) ParseFlags(parent *{{ ident "gith
             {{if not .OneOf -}}
                 {{if .IsList -}}
     for _, flagIdx := range flagIndexes.ByName("{{.Name}}") {
-        x.{{.VarName}} = append(x.{{.VarName}}, &{{.Message.Type}}Flag{ {{.Message.Type }}: new({{qualify .Message.GoIdent}}) })
+        x.{{.VarName}} = append(x.{{.VarName}}, &{{qualify .Message.Type}}Flag{ {{.Message.Type.GoName }}: new({{qualify .Message.GoIdent}}) })
     	x.{{.VarName}}[len(x.{{.VarName}})-1].AddFlags(x.set)
     	x.{{.VarName}}[len(x.{{.VarName}})-1].ParseFlags(x.set, flagIdx.Args)
     }
@@ -89,13 +89,13 @@ func(x *{{$value.Message.GoIdent.GoName}}Flag) ParseFlags(parent *{{ ident "gith
         x.changed = true
         x.{{.FieldName}} = make([]*{{qualify .Message.GoIdent}}, len(x.{{.VarName}}))
         for i, value := range x.{{.VarName}} {
-            x.{{$value.Message.GoIdent.GoName}}.{{.FieldName}}[i] = value.{{.Message.Type}}
+            x.{{$value.Message.GoIdent.GoName}}.{{.FieldName}}[i] = value.{{.Message.Type.GoName}}
         }
     }
                 {{else}}
     if x.{{.VarName}}.Changed() {
         x.changed = true
-        x.{{$value.Message.GoIdent.GoName}}.{{.FieldName}} = x.{{.VarName}}.{{.Message.Type}}
+        x.{{$value.Message.GoIdent.GoName}}.{{.FieldName}} = x.{{.VarName}}.{{.Message.Type.GoName}}
     }
                 {{end}}
             {{end -}}
@@ -109,7 +109,7 @@ func(x *{{$value.Message.GoIdent.GoName}}Flag) ParseFlags(parent *{{ ident "gith
             {{if not .Message -}}
             if x.{{.VarName}}.Changed() {
                 x.changed = true
-                x.{{$value.Message.GoIdent.GoName}}.{{$oneOf.FieldName}} = &{{qualify .Type}}{ {{.FieldName}}: *x.{{.VarName}}.Value }
+                x.{{$value.Message.GoIdent.GoName}}.{{$oneOf.FieldName}} = &{{qualify .Type}}{ {{.FieldName}}: {{if not .IsPtr}}*{{end}}x.{{.VarName}}.Value }
             }
             {{else -}}
                 {{if .IsList -}}
@@ -123,7 +123,7 @@ func(x *{{$value.Message.GoIdent.GoName}}Flag) ParseFlags(parent *{{ ident "gith
                 {{else -}}
     if x.{{.VarName}}.Changed() {
         x.changed = true
-        x.{{$oneOf.FieldName}} = &{{qualify .Type}}{ {{.FieldName}}:  x.{{.VarName}}.{{.Message.Type}} }
+        x.{{$value.Message.GoIdent.GoName}}.{{$oneOf.FieldName}} = &{{qualify .Type}}{ {{.FieldName}}:  x.{{.VarName}}.{{.Message.Type.GoName}} }
     }
                 {{end -}}
             {{end -}}

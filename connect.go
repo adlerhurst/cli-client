@@ -62,7 +62,11 @@ func Connection(ctx context.Context, opts ...ConnectionOpt) *grpc.ClientConn {
 	}
 
 	var err error
-	conn, err = grpc.DialContext(ctx, net.JoinHostPort(connConfig.Host, strconv.Itoa(int(connConfig.Port))), connConfig.DialOptions...)
+	target := connConfig.Host
+	if connConfig.Port > 0 {
+		target = net.JoinHostPort(connConfig.Host, strconv.Itoa(int(connConfig.Port)))
+	}
+	conn, err = grpc.DialContext(ctx, target, connConfig.DialOptions...)
 	if err != nil {
 		Logger().ErrorContext(ctx, "dial failed", "cause", err)
 		os.Exit(1)

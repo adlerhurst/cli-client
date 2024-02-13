@@ -28,9 +28,10 @@ func run{{.VarName}}(cmd *{{ ident "github.com/spf13/cobra" "Command" | qualify 
 	conn := {{ ident "github.com/adlerhurst/cli-client" "Connection" | qualify }}(cmd.Context())
 	client := New{{ .Parent.Service.GoName }}Client(conn)
 
-	_, err := client.{{ .Method.GoName }}(cmd.Context(), _{{.VarName}}Request.{{.Request.GoName}}, {{.VarName}}CallOptions...)
+	res, err := client.{{ .Method.GoName }}(cmd.Context(), _{{.VarName}}Request.{{.Request.GoName}}, {{.VarName}}CallOptions...)
 	if err != nil {
 		{{ logger }}.Error("unable to {{ .Method.GoName }}", "cause", err)
 		os.Exit(1)
 	}
+	{{ logger }}.Info("🎉 request succeeded", "result", res)
 }

@@ -77,12 +77,13 @@ message CallRequest {
     repeated double rep_s = 23;
     repeated Wat rep_wat = 24;
     optional google.protobuf.Any something = 25;
-
+    
     oneof oo {
         string oo_text = 26;
         Wat oo_wat = 27;
         Nested oo_nested = 28;
     }
+    map<string, bytes> metadata = 29;
 }
 
 enum Some {

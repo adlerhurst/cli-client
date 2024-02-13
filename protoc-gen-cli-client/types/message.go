@@ -9,10 +9,6 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-var messages = Messages{}
-
-type Messages map[protoreflect.FullName]*Message
-
 type Message struct {
 	*protogen.Message
 	Flags  []*Flag
@@ -51,11 +47,11 @@ func SetMessages(service *protogen.Service) {
 	// }
 }
 
-func SetMessagesFromFile(file *protogen.File) {
-	for _, message := range file.Messages {
-		setMessage(message)
-	}
-}
+// func SetMessagesFromFile(file *protogen.File) {
+// 	for _, message := range file.Messages {
+// 		setMessage(message)
+// 	}
+// }
 
 var customFlags = map[protoreflect.FullName]*customFlag{
 	"google.protobuf.Timestamp": {
@@ -80,18 +76,16 @@ var customFlags = map[protoreflect.FullName]*customFlag{
 	},
 }
 
-func setMessage(message *protogen.Message) {
-	log.Println(message.Desc.FullName())
-	if _, ok := messages[message.Desc.FullName()]; ok {
-		return
+func newMessage(msgs Messages, message *protogen.Message) Messages {
+	if _, ok := msgs[message.GoIdent]; ok {
+		return msgs
 	}
 
-	msg := &Message{
+	msgs[message.GoIdent] = &Message{
 		Message: message,
-		Flags:   make([]*Flag, len(message.Fields)),
+		Flags:   make([]*Flag, 0, len(message.Fields)),
 		OneOfs:  make([]*OneOf, 0, len(message.Oneofs)),
 	}
-	messages[message.Desc.FullName()] = msg
 
 	for _, oneOf := range message.Oneofs {
 		if isOneOfOptional(oneOf, message.Fields) {
@@ -99,33 +93,45 @@ func setMessage(message *protogen.Message) {
 		}
 		oo := &OneOf{
 			oneOfFlag: &oneOfFlag{Oneof: oneOf},
-			Flags:     make([]*Flag, len(oneOf.Fields)),
+			Flags:     make([]*Flag, 0, len(oneOf.Fields)),
 		}
-		msg.OneOfs = append(msg.OneOfs, oo)
-		for i, oneOfField := range oneOf.Fields {
+		msgs[message.GoIdent].OneOfs = append(msgs[message.GoIdent].OneOfs, oo)
+		for _, oneOfField := range oneOf.Fields {
 			flag := &Flag{
 				Field: oneOfField,
 				OneOf: &oneOfFlag{Oneof: oneOf},
 			}
-			oo.Flags[i] = flag
+			oo.Flags = append(oo.Flags, flag)
 			if oneOfField.Message != nil {
 				if wellknownFlag, ok := customFlags[oneOfField.Message.Desc.FullName()]; ok {
 					flag.Custom = wellknownFlag
 					continue
 				}
 				flag.Message = &messageFlag{Message: oneOfField.Message}
-				setMessage(oneOfField.Message)
+				// newMessage(msgs, oneOfField.Message)
 			}
 		}
 	}
 
-	for i, field := range message.Fields {
+	for _, nested := range message.Messages {
+		if nested.Desc.IsMapEntry() {
+			log.Println("maps are currently unsupported")
+			continue
+		}
+		newMessage(msgs, nested)
+	}
+
+	for _, field := range message.Fields {
+		if field.Desc.IsMap() {
+			log.Println("maps are currently unsupported")
+			continue
+		}
 		flag := &Flag{
 			Field: field,
 		}
-		msg.Flags[i] = flag
+		msgs[message.GoIdent].Flags = append(msgs[message.GoIdent].Flags, flag)
 
-		for _, oneOf := range msg.OneOfs {
+		for _, oneOf := range msgs[message.GoIdent].OneOfs {
 			if field.Oneof == nil || oneOf.GoName != field.Oneof.GoName {
 				continue
 			}
@@ -144,10 +150,23 @@ func setMessage(message *protogen.Message) {
 				continue
 			}
 			flag.Message = &messageFlag{Message: field.Message}
-			setMessage(field.Message)
 			continue
 		}
 	}
+
+	return msgs
+}
+
+type Messages map[protogen.GoIdent]*Message
+
+func MessagesFromFile(file *protogen.File) Messages {
+	messages := make(Messages, len(file.Messages))
+
+	for _, message := range file.Messages {
+		messages = newMessage(messages, message)
+	}
+
+	return messages
 }
 
 var (
@@ -155,20 +174,12 @@ var (
 	messageDefinition string
 )
 
-func GenerateMessages(plugin *protogen.Plugin, file *protogen.File) (err error) {
-	if len(messages) == 0 {
-		return nil
-	}
+func (msgs Messages) GenerateMessages(plugin *protogen.Plugin, file *protogen.File) error {
 	gen := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+"_cli_flags.go", file.GoImportPath)
 
 	header(gen, file)
 
-	err = executeTemplate(gen, "message", messageDefinition, messages)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return executeTemplate(gen, "message", messageDefinition, msgs)
 }
 
 func isOneOfOptional(oneOf *protogen.Oneof, fields []*protogen.Field) bool {

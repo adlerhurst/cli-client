@@ -89,24 +89,24 @@ type messageFlag struct {
 	*protogen.Message
 }
 
-func (flag *messageFlag) Type() string {
-	return flag.GoIdent.GoName
+func (flag *messageFlag) Type() protogen.GoIdent {
+	return flag.GoIdent
 }
 
 type enumFlag struct {
 	*protogen.Enum
 }
 
-func (flag *enumFlag) Type() string {
-	return flag.GoIdent.GoName
+func (flag *enumFlag) Type() protogen.GoIdent {
+	return flag.GoIdent
 }
 
 type oneOfFlag struct {
 	*protogen.Oneof
 }
 
-func (flag *oneOfFlag) Type() string {
-	return flag.GoIdent.GoName
+func (flag *oneOfFlag) Type() protogen.GoIdent {
+	return flag.GoIdent
 }
 
 func (flag *oneOfFlag) FieldName() string {

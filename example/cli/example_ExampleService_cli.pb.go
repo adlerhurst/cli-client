@@ -50,11 +50,12 @@ func runExampleMyCallCmd(cmd *cobra.Command, args []string) {
 	conn := cli_client.Connection(cmd.Context())
 	client := NewExampleServiceClient(conn)
 
-	_, err := client.Call(cmd.Context(), _ExampleMyCallCmdRequest.CallRequest, ExampleMyCallCmdCallOptions...)
+	res, err := client.Call(cmd.Context(), _ExampleMyCallCmdRequest.CallRequest, ExampleMyCallCmdCallOptions...)
 	if err != nil {
 		cli_client.Logger().Error("unable to Call", "cause", err)
 		os.Exit(1)
 	}
+	cli_client.Logger().Info("🎉 request succeeded", "result", res)
 }
 
 var (
@@ -87,11 +88,12 @@ func runExampleNestedCmd(cmd *cobra.Command, args []string) {
 	conn := cli_client.Connection(cmd.Context())
 	client := NewExampleServiceClient(conn)
 
-	_, err := client.Nested(cmd.Context(), _ExampleNestedCmdRequest.NestedRequest, ExampleNestedCmdCallOptions...)
+	res, err := client.Nested(cmd.Context(), _ExampleNestedCmdRequest.NestedRequest, ExampleNestedCmdCallOptions...)
 	if err != nil {
 		cli_client.Logger().Error("unable to Nested", "cause", err)
 		os.Exit(1)
 	}
+	cli_client.Logger().Info("🎉 request succeeded", "result", res)
 }
 
 var (
@@ -124,11 +126,12 @@ func runExampleServerSideStreamCmd(cmd *cobra.Command, args []string) {
 	conn := cli_client.Connection(cmd.Context())
 	client := NewExampleServiceClient(conn)
 
-	_, err := client.ServerSideStream(cmd.Context(), _ExampleServerSideStreamCmdRequest.ServerSideStreamRequest, ExampleServerSideStreamCmdCallOptions...)
+	res, err := client.ServerSideStream(cmd.Context(), _ExampleServerSideStreamCmdRequest.ServerSideStreamRequest, ExampleServerSideStreamCmdCallOptions...)
 	if err != nil {
 		cli_client.Logger().Error("unable to ServerSideStream", "cause", err)
 		os.Exit(1)
 	}
+	cli_client.Logger().Info("🎉 request succeeded", "result", res)
 }
 
 var (
@@ -161,11 +164,12 @@ func runExampleClientSideStreamCmd(cmd *cobra.Command, args []string) {
 	conn := cli_client.Connection(cmd.Context())
 	client := NewExampleServiceClient(conn)
 
-	_, err := client.ClientSideStream(cmd.Context(), _ExampleClientSideStreamCmdRequest.ClientSideStreamRequest, ExampleClientSideStreamCmdCallOptions...)
+	res, err := client.ClientSideStream(cmd.Context(), _ExampleClientSideStreamCmdRequest.ClientSideStreamRequest, ExampleClientSideStreamCmdCallOptions...)
 	if err != nil {
 		cli_client.Logger().Error("unable to ClientSideStream", "cause", err)
 		os.Exit(1)
 	}
+	cli_client.Logger().Info("🎉 request succeeded", "result", res)
 }
 
 var (
@@ -198,9 +202,10 @@ func runExampleBidirectionalStreamCmd(cmd *cobra.Command, args []string) {
 	conn := cli_client.Connection(cmd.Context())
 	client := NewExampleServiceClient(conn)
 
-	_, err := client.BidirectionalStream(cmd.Context(), _ExampleBidirectionalStreamCmdRequest.BidirectionalStreamRequest, ExampleBidirectionalStreamCmdCallOptions...)
+	res, err := client.BidirectionalStream(cmd.Context(), _ExampleBidirectionalStreamCmdRequest.BidirectionalStreamRequest, ExampleBidirectionalStreamCmdCallOptions...)
 	if err != nil {
 		cli_client.Logger().Error("unable to BidirectionalStream", "cause", err)
 		os.Exit(1)
 	}
+	cli_client.Logger().Info("🎉 request succeeded", "result", res)
 }

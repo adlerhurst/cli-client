@@ -291,7 +291,7 @@ func (x *CallRequestFlag) ParseFlags(parent *pflag.FlagSet, args []string) {
 	case "oo-nested":
 		if x.ooNestedFlag.Changed() {
 			x.changed = true
-			x.Oo = &CallRequest_OoNested{OoNested: x.ooNestedFlag.CallRequest_Nested}
+			x.CallRequest.Oo = &CallRequest_OoNested{OoNested: x.ooNestedFlag.CallRequest_Nested}
 		}
 	}
 }
