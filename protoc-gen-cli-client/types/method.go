@@ -2,6 +2,7 @@ package types
 
 import (
 	_ "embed"
+	"log"
 	"regexp"
 	"strings"
 
@@ -84,9 +85,10 @@ func (method *Method) public() string {
 }
 
 func (method *Method) name() (name string) {
-	subCommand := method.Method.Desc.Options().ProtoReflect().Get(option.E_SubCommand.TypeDescriptor()).Message().Interface().(*option.CommandOption)
+	subCommand := method.Method.Desc.Options().ProtoReflect().Get(option.E_SubCommand.TypeDescriptor()).Message().Interface().(*option.SubCommand)
 	if subCommand != nil {
 		name = subCommand.Name
+		log.Println(subCommand.String())
 	}
 	if name == "" {
 		name = string(method.Desc.Name())

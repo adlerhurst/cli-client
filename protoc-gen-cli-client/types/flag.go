@@ -3,6 +3,7 @@ package types
 import (
 	"strings"
 
+	option "github.com/adlerhurst/cli-client/protoc-gen-cli-client/option"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
@@ -27,8 +28,16 @@ func (flag *Flag) FieldNamePrivate() string {
 	return flag.Desc.JSONName()
 }
 
-func (flag *Flag) Name() string {
-	return strings.ReplaceAll(string(flag.Desc.Name()), "_", "-")
+func (flag *Flag) Name() (name string) {
+	f := flag.Field.Desc.Options().ProtoReflect().Get(option.E_Flag.TypeDescriptor()).Message().Interface().(*option.FlagOption)
+	if f != nil {
+		name = f.Name
+	}
+	if name == "" {
+		name = string(flag.Desc.Name())
+	}
+
+	return strings.ReplaceAll(name, "_", "-")
 }
 
 func (flag *Flag) Type() protogen.GoIdent {

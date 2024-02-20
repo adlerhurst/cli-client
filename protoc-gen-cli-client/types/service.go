@@ -2,6 +2,7 @@ package types
 
 import (
 	_ "embed"
+	"log"
 	"regexp"
 	"strings"
 
@@ -94,9 +95,11 @@ func (svc *Service) filename(prefix string) string {
 }
 
 func (svc *Service) name() (name string) {
-	command := svc.Service.Desc.Options().ProtoReflect().Get(option.E_Command.TypeDescriptor()).Message().Interface().(*option.CommandOption)
+	command := svc.Service.Desc.Options().ProtoReflect().Get(option.E_Command.TypeDescriptor()).Message().Interface().(*option.Command)
 	if command != nil {
 		name = command.Name
+
+		log.Println(command.String())
 	}
 	if name == "" {
 		name = string(svc.Desc.Name())

@@ -28,8 +28,6 @@ func main() {
 			}
 
 			for _, svc := range file.Services {
-				types.SetMessages(svc)
-
 				service := types.NewService(svc)
 				if err := service.Generate(plugin, file); err != nil {
 					return err

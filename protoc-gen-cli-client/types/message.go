@@ -41,18 +41,6 @@ func (msg *Message) HasMessageFlags() bool {
 	return false
 }
 
-func SetMessages(service *protogen.Service) {
-	// for _, method := range service.Methods {
-	// 	setMessage(method.Input)
-	// }
-}
-
-// func SetMessagesFromFile(file *protogen.File) {
-// 	for _, message := range file.Messages {
-// 		setMessage(message)
-// 	}
-// }
-
 var customFlags = map[protoreflect.FullName]*customFlag{
 	"google.protobuf.Timestamp": {
 		Type:        "TimestampParser",
@@ -72,6 +60,11 @@ var customFlags = map[protoreflect.FullName]*customFlag{
 	"google.protobuf.Any": {
 		Type:        "AnyParser",
 		Constructor: "NewAnyParser",
+		ImportPath:  "github.com/adlerhurst/cli-client",
+	},
+	"google.protobuf.Empty": {
+		Type:        "EmptyParser",
+		Constructor: "NewEmptyParser",
 		ImportPath:  "github.com/adlerhurst/cli-client",
 	},
 }
@@ -108,7 +101,6 @@ func newMessage(msgs Messages, message *protogen.Message) Messages {
 					continue
 				}
 				flag.Message = &messageFlag{Message: oneOfField.Message}
-				// newMessage(msgs, oneOfField.Message)
 			}
 		}
 	}

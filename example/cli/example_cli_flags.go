@@ -116,7 +116,7 @@ func (x *CallRequestFlag) AddFlags(parent *pflag.FlagSet) {
 	x.set = pflag.NewFlagSet("CallRequest", pflag.ContinueOnError)
 
 	x.useFieldNameFlag = cli_client.NewStringParser(x.set, "use-field-name", "")
-	x.useCustomNameFlag = cli_client.NewStringParser(x.set, "use-custom-name", "")
+	x.useCustomNameFlag = cli_client.NewStringParser(x.set, "custom", "")
 	x.repNestFlag = []*CallRequest_NestedFlag{}
 	x.createdAtFlag = cli_client.NewTimestampParser(x.set, "created-at", "")
 	x.payloadFlag = cli_client.NewStructParser(x.set, "payload", "")

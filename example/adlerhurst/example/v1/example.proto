@@ -13,12 +13,28 @@ option (adlerhurst.cli.v1alpha.cli).name = "example-cli";
 //This is an example service
 //The service does nothing
 service ExampleService {
-    option (adlerhurst.cli.v1alpha.command).name = "example";
+    option (adlerhurst.cli.v1alpha.command) = {
+        name: "example";
+        sub_commands: [
+            {
+                name: "call"
+            },
+            {
+                name: "ignore",
+                ignored: true
+            }
+        ]
+    };
 
     //I do absolutely nothing
     //because i'm a showcase
     rpc Call(CallRequest) returns (CallResponse) {
-        option (adlerhurst.cli.v1alpha.sub_command).name = "myCall";
+        option (adlerhurst.cli.v1alpha.sub_command) = {
+            name: "myCall",
+            parent: {
+                name: "call"
+            }
+        };
     };
     rpc Nested(NestedRequest) returns (NestedResponse);
     rpc ServerSideStream(ServerSideStreamRequest) returns (stream ServerSideStreamResponse);
