@@ -10,7 +10,7 @@ compile: generate-option
 	cd protoc-gen-cli-client && go mod tidy
 	cd protoc-gen-cli-client && go install
 
-generate-example:
+generate-example: compile
 	$(RM) -r example/proto/*pb.go
 	cd example && buf generate
 	mkdir -p example/cli

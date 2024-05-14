@@ -20,8 +20,17 @@ service ExampleService {
                 name: "call"
             },
             {
-                name: "ignore",
-                ignored: true
+                name: "stream",
+                sub_commands: [
+                    {
+                        name: "client",
+                        sub_commands: [
+                            {
+                                name: "wroui"
+                            }
+                        ]
+                    }
+                ]
             }
         ]
     };
@@ -30,16 +39,37 @@ service ExampleService {
     //because i'm a showcase
     rpc Call(CallRequest) returns (CallResponse) {
         option (adlerhurst.cli.v1alpha.sub_command) = {
-            name: "myCall",
+            name: "my",
             parent: {
                 name: "call"
             }
         };
     };
     rpc Nested(NestedRequest) returns (NestedResponse);
-    rpc ServerSideStream(ServerSideStreamRequest) returns (stream ServerSideStreamResponse);
-    rpc ClientSideStream(stream ClientSideStreamRequest) returns (ClientSideStreamResponse);
-    rpc BidirectionalStream(stream BidirectionalStreamRequest) returns (stream BidirectionalStreamResponse);
+    rpc ServerSideStream(ServerSideStreamRequest) returns (stream ServerSideStreamResponse) {
+        option (adlerhurst.cli.v1alpha.sub_command) = {
+            name: "server",
+            parent: {
+                name: "stream"
+            }
+        };
+    };
+    rpc ClientSideStream(stream ClientSideStreamRequest) returns (ClientSideStreamResponse) {
+        option (adlerhurst.cli.v1alpha.sub_command) = {
+            name: "client",
+            parent: {
+                name: "stream"
+            }
+        };
+    };
+    rpc BidirectionalStream(stream BidirectionalStreamRequest) returns (stream BidirectionalStreamResponse) {
+        option (adlerhurst.cli.v1alpha.sub_command) = {
+            name: "bi-directional",
+            parent: {
+                name: "stream"
+            }
+        };
+    };
 }
 
 message NestedRequest {

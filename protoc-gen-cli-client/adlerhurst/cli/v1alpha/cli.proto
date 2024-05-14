@@ -20,26 +20,38 @@ message CLIOption {
 // e.g. ./my-cli user
 // my-cli ${service.command_name}
 extend google.protobuf.ServiceOptions {
-    Command command = 51000;
+    ServiceCommand command = 51000;
 }
 
-message Command {
+message ServiceCommand {
+    message SubCommand{
+        string name = 1;
+        optional string short_description = 2;
+        optional string long_description = 3;
+        repeated SubCommand sub_commands = 4;
+    }
+
     string name = 1;
     optional bool ignored = 2;
-    repeated Command sub_commands = 3;
+    repeated SubCommand sub_commands = 3;
 }
 
 // defines the subcommands name
 // e.g. ./my-cli user add
 // my-cli ${service.command_name} ${method.name}
 extend google.protobuf.MethodOptions {
-    SubCommand sub_command = 51000;
+    MethodCommand sub_command = 51000;
 }
 
-message SubCommand {
+message MethodCommand {
+    message ParentCommand {
+        string name = 1;
+    }
     string name = 1;
     optional bool ignored = 2;
-    optional SubCommand parent = 3;
+    // by default the command of the service is taken
+    // only defined sub commands of the service are allowed
+    optional ParentCommand parent = 3;
 }
 
 // my-cli ${service.command_name} ${method.name} --${field.arg_name}

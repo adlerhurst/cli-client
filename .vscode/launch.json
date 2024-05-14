@@ -11,11 +11,12 @@
             "mode": "auto",
             "program": "${workspaceFolder}/example/main.go",
             "args": [
-                // "--help"
+                "stream", "client",  "--help"
+                // "call", "my", "--help"
                 // "my-call", "-h"
                 // "my-call", "--payload", "{\"test\": 123, \"asdf\": \"test\"}", "--created-at", "2024-01-01T20:38:24Z"
                 // "my-call", "--nested", "--field", "asdf", "--nested", "--field", "hgdf"
-                "my-call", "--nested", "--field", "bla", "--rep-nest", "--field", "asdf", "--rep-nest", "--field", "hgdf", "--nested", "--field", "blub"
+                // "my-call", "--nested", "--field", "bla", "--rep-nest", "--field", "asdf", "--rep-nest", "--field", "hgdf", "--nested", "--field", "blub"
                 // "my-call", "--rep-wat", "1,WAT_WEISS", "--wat", "2", "--oo-text", "bla", "--oo-wat", "WAT_WEISS", "--oo-nested", "--field", "asdf"
                 // "my-call", "--rep-wat", "1,WAT_WEISS", "--rep-wat", "0,WAT_WEISS", "--rep-s", "0,1,2,3", "--wat", "WAT_WEISS", "--ui32", "123",// "--path", "${workspaceFolder}/.vscode/call_request.json"
                 // "my-call", "--wat", "2", "--ui32", "123", "--path", "${workspaceFolder}/.vscode/call_request.json"

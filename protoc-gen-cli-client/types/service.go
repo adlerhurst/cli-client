@@ -95,7 +95,7 @@ func (svc *Service) filename(prefix string) string {
 }
 
 func (svc *Service) name() (name string) {
-	command := svc.Service.Desc.Options().ProtoReflect().Get(option.E_Command.TypeDescriptor()).Message().Interface().(*option.Command)
+	command := svc.Service.Desc.Options().ProtoReflect().Get(option.E_Command.TypeDescriptor()).Message().Interface().(*option.ServiceCommand)
 	if command != nil {
 		name = command.Name
 
