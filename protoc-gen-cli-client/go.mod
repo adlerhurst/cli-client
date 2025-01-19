@@ -7,4 +7,7 @@ require (
 	google.golang.org/protobuf v1.32.0
 )
 
-require github.com/google/go-cmp v0.6.0 // indirect
+require (
+	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/iancoleman/strcase v0.3.0
+)
