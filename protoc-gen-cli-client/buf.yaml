@@ -1,11 +1,19 @@
-version: v1
-name: buf.build/adlerhurst/cli-client
-deps:
-  - buf.build/googleapis/googleapis
+version: v2
+# name: buf.build/adlerhurst/cli-client
+modules:
+  - path: proto
+lint:
+  use:
+    - STANDARD
 breaking:
   use:
     - FILE
-  ignore_unstable_packages: true
-lint:
-  use:
-    - DEFAULT
+# deps:
+#   - buf.build/googleapis/googleapis
+# breaking:
+#   use:
+#     - FILE
+#   ignore_unstable_packages: true
+# lint:
+#   use:
+#     - DEFAULT

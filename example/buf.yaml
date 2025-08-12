@@ -1,12 +1,10 @@
-version: v1
-name: buf.build/adlerhurst/example
-deps:
-  - buf.build/googleapis/googleapis
-  - buf.build/adlerhurst/cli-client
+# For details on buf.yaml configuration, visit https://buf.build/docs/configuration/v2/buf-yaml
+version: v2
+modules:
+  - path: proto
+lint:
+  use:
+    - STANDARD
 breaking:
   use:
     - FILE
-  ignore_unstable_packages: true
-lint:
-  use:
-    - DEFAULT

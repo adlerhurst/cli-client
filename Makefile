@@ -10,12 +10,13 @@ compile: generate-option
 	cd protoc-gen-cli-client && go mod tidy
 	cd protoc-gen-cli-client && go install
 
+.PHONY: generate-example
 generate-example: compile
-	$(RM) -r example/proto/*pb.go
+	$(RM) -r example/gen
 	cd example && buf generate
-	mkdir -p example/cli
-	mv example/.artifacts/adlerhurst/example/v1/* example/cli
-	$(RM) -r example/.artifacts
+# mkdir -p example/cli
+# mv example/.artifacts/adlerhurst/example/v1/* example/cli
+# $(RM) -r example/.artifacts
 
 .PHONY: compile-example
 compile-example: compile generate-example

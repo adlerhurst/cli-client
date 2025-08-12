@@ -1,15 +1,18 @@
-version: v1
-# managed:
-#   enabled: true
-#   go_package_prefix:
-#     default: "github.com/adlerhurst/protoc-gen-cli-client/example/cli;cli"
+version: v2
+managed:
+  enabled: true
+  # override:
+  #   - file_option: go_package_prefix
+  #     value: github.com/bufbuild/buf-tour/gen
 plugins:
-  - plugin: go
-    out: .artifacts
+  - remote: buf.build/protocolbuffers/go
+    out: gen
     opt: paths=source_relative
-  - plugin: go-grpc
-    out: .artifacts
+  - local: /Users/adlerhurst/go/bin/protoc-gen-cli-client
+    out: gen
     opt: paths=source_relative
-  - plugin: cli-client
-    out: .artifacts
-    opt: paths=source_relative
+  # - remote: buf.build/connectrpc/go
+  #   out: gen
+  #   opt: paths=source_relative
+inputs:
+  - directory: proto

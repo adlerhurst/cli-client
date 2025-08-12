@@ -1,0 +1,158 @@
+edition = "2023";
+
+// option features.
+
+package adlerhurst.example.v1;
+
+// import "adlerhurst/cli/v1alpha/cli.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+// option features.(pb.go).api_level = API_HYBRID;
+option go_package = "github.com/cli-client/example/cli;cli";
+// option (adlerhurst.cli.v1alpha.cli).name = "example-cli";
+
+//This is an example service
+//The service does nothing
+service ExampleService {
+  // option (adlerhurst.cli.v1alpha.command) = {
+  //   name: "example"
+  //   sub_commands: [
+  //     {name: "call"},
+  //     {
+  //       name: "stream"
+  //       sub_commands: [
+  //         {
+  //           name: "client"
+  //           sub_commands: [
+  //             {name: "wroui"}]
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // };
+
+  //I do absolutely nothing
+  //because i'm a showcase
+  rpc Call(CallRequest) returns (CallResponse) {
+    // option (adlerhurst.cli.v1alpha.sub_command) = {
+    //   name: "my"
+    //   parent: {name: "call"}
+    // };
+  }
+  rpc Nested(NestedRequest) returns (NestedResponse);
+  rpc ServerSideStream(ServerSideStreamRequest) returns (stream ServerSideStreamResponse) {
+    // option (adlerhurst.cli.v1alpha.sub_command) = {
+    //   name: "server"
+    //   parent: {name: "stream"}
+    // };
+  }
+  rpc ClientSideStream(stream ClientSideStreamRequest) returns (ClientSideStreamResponse) {
+    // option (adlerhurst.cli.v1alpha.sub_command) = {
+    //   name: "client"
+    //   parent: {name: "stream"}
+    // };
+  }
+  rpc BidirectionalStream(stream BidirectionalStreamRequest) returns (stream BidirectionalStreamResponse) {
+    // option (adlerhurst.cli.v1alpha.sub_command) = {
+    //   name: "bi-directional"
+    //   parent: {name: "stream"}
+    // };
+  }
+}
+
+message NestedRequest {
+  message Nested {
+    string id = 1;
+    int32 depth = 2;
+  }
+
+  Nested nested = 1;
+  string id = 2;
+}
+
+message NestedResponse {}
+
+// service Example2Service {
+//     rpc Call(CallRequest) returns (CallResponse);
+// }
+
+message CallRequest {
+  message Nested {
+    string field = 1;
+  }
+  enum Wat {
+    WAT_UNSPECIFIED = 0;
+    WAT_WEISS = 1;
+    WAT_ICH = 2;
+  }
+  string use_field_name = 1;
+  // /*[(adlerhurst.cli.v1alpha.flag).name = "custom"]*/
+  string use_custom_name = 2;
+  Nested nested = 3;
+  repeated Nested rep_nest = 4;
+  // /*[(adlerhurst.cli.v1alpha.flag).ignored = true]*/
+  google.protobuf.Timestamp created_at = 5;
+  //  /*(adlerhurst.cli.v1alpha.flag).ignored = true,*/
+  google.protobuf.Struct payload = 6 [features.field_presence = EXPLICIT];
+  Wat wat = 7;
+  bool is_something = 8;
+  int32 i32 = 9 [features.field_presence = EXPLICIT];
+  uint32 ui32 = 10;
+  int64 i64 = 11;
+  uint64 ui64 = 12;
+  float fl = 13;
+  double dbl = 14;
+  bytes beiz = 15;
+  sint32 si32 = 16;
+  sint64 si64 = 17;
+  fixed32 f32 = 18;
+  fixed64 f64 = 19;
+  sfixed32 sf32 = 20;
+  sfixed64 sf64 = 21;
+  Some some = 22;
+  repeated double rep_s = 23;
+  repeated Wat rep_wat = 24;
+  google.protobuf.Any something = 25 [features.field_presence = EXPLICIT];
+
+  oneof oo {
+    string oo_text = 26;
+    Wat oo_wat = 27;
+    Nested oo_nested = 28;
+  }
+  map<string, bytes> metadata = 29;
+}
+
+enum Some {
+  SOME_UNSPECIFIED = 0;
+  SOME_SPECIFIED = 1;
+}
+
+message CallResponse {
+  int64 number = 1;
+}
+
+message ServerSideStreamRequest {
+  string text = 1;
+}
+
+message ServerSideStreamResponse {
+  int64 number = 1;
+}
+
+message ClientSideStreamRequest {
+  string text = 1;
+}
+
+message ClientSideStreamResponse {
+  int64 number = 1;
+}
+
+message BidirectionalStreamRequest {
+  string text = 1;
+}
+
+message BidirectionalStreamResponse {
+  int64 number = 1;
+}
